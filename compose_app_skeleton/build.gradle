@@ -1,0 +1,65 @@
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    id 'kotlin-parcelize'
+}
+
+android {
+    namespace 'com.starsoft.skeleton.compose'
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 24
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+
+    buildFeatures {
+        compose true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.14"
+    }
+}
+
+dependencies {
+
+//    def composeBom = libs.androidx.compose.bom.v20250200
+//    implementation composeBom
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.kotlin.reflect
+
+    // Navigation
+    implementation libs.androidx.navigation.compose.v288
+
+    // Integration with ViewModels
+    implementation libs.androidx.lifecycle.viewmodel.compose
+
+    // compose Material Design
+    implementation libs.androidx.material
+
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.material
+    testImplementation libs.junit
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso.core
+    implementation libs.jetbrains.kotlin.reflect
+}
