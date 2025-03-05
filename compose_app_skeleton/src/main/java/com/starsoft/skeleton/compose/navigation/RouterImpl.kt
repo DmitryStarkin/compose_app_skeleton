@@ -40,7 +40,7 @@ import kotlin.reflect.KClass
 val  localScopeIdentifier = compositionLocalOf { EMPTY_STRING }
 val  localCommonModel = compositionLocalOf<CommonModel?> { error("not init") }
 val  localDestinationClass = compositionLocalOf<KClass<*>> { Router.ComposeDestination::class }
-val  localNavController = compositionLocalOf<NavController?> { null }
+val  localNavController = compositionLocalOf<NavController?> { error("not init") }
 
 class RouterImpl: Router {
     companion object{

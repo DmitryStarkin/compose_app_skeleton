@@ -41,7 +41,7 @@ fun Counter(
         startValue: Int,
         endValue: Int,
         delayMs: Long,
-        onEnd: () -> Unit,
+        onEnd:  () -> Unit,
         ui:  @Composable (currentValue : Int, counting : Boolean) -> Unit){
     val curValue = if(remember){
         rememberSaveable{ mutableIntStateOf(startValue) }
@@ -59,9 +59,9 @@ fun Counter(
             while(counting()){
                 delay(delayMs)
                 if(down.value){
-                    curValue.value -= 1
+                    curValue.intValue -= 1
                 } else {
-                    curValue.value += 1
+                    curValue.intValue += 1
                 }
             }
         onEnd()
@@ -119,7 +119,7 @@ fun CircularProgressSpinner(modifier: Modifier = Modifier,
             delay(1010L - speed)
             if(currentRotation >= 360f){
                 currentRotation = 0f
-            }else{
+            } else {
                 currentRotation += 30f
             }
             if(currentProgress >= 0.9f){

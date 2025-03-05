@@ -11,6 +11,7 @@ import com.starsoft.testapp.applicationFlow.rootFlow.di.modules.mainModule
 import com.starsoft.skeleton.compose.navigation.listOf
 import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel
 import com.starsoft.testapp.applicationFlow.SharedModel
+import com.starsoft.testapp.applicationFlow.rootFlow.splashPage.SplashScreen
 import toothpick.Scope
 import toothpick.ktp.KTP
 import javax.inject.Provider
@@ -42,8 +43,13 @@ class RootActivity : BaseComposeActivity(), Provider<SharedModel>{
     override fun SetRootUi() {
         Log.d("test","SetRootUi")
         val controller = rememberNavController()
-        commonModel.CreateNavHostHere(controller, listOf(RootScreen::class.java), RootScreen::class.java)
-        //commonModel.performActivityLevelAction(obtainNavigationAction(RootScreen::class.java.simpleRout()))
+        commonModel.CreateNavHostHere(
+            controller,
+            listOf(
+                SplashScreen::class.java,
+                RootScreen::class.java),
+            SplashScreen::class.java
+        )
     }
     
     override fun get(): SharedModel = commonModel as SharedModel
