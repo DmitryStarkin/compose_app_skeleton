@@ -1,5 +1,6 @@
 package com.starsoft.skeleton.compose.navigation
 
+import android.app.Service
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -10,6 +11,7 @@ import android.util.Log
 import androidx.annotation.StringRes
 import androidx.core.os.bundleOf
 import com.starsoft.skeleton.compose.R
+import com.starsoft.skeleton.compose.util.isInstanceOrExtend
 import kotlinx.parcelize.Parcelize
 
 /**
@@ -113,8 +115,10 @@ fun Context.openWebLink(
     }
 }
 
-private fun Context.stopAsService(rout: Class<*>) {
-    stopService(Intent(this, rout))
+fun Context.tryStopAsService(service: Class<*>) {
+    if(service.isInstanceOrExtend(Service::class.java) ){
+        stopService(Intent(this, service))
+    }
 }
 
 @Parcelize

@@ -20,10 +20,9 @@ import androidx.navigation.NavBackStackEntry
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.navigation.localDestinationClass
 import com.starsoft.skeleton.compose.navigation.localScopeIdentifier
-import com.starsoft.skeleton.compose.navigation.localtarget
+import com.starsoft.skeleton.compose.navigation.localCommonModel
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.testapp.applicationFlow.rootFlow.RootActivity
-import com.starsoft.testapp.applicationFlow.rootFlow.firstPageFlow.FirstPageUi
 import com.starsoft.testapp.applicationFlow.rootFlow.thirdPageFlow.ThirdPageViewModel.Companion.testThirdPageViewModel
 import com.starsoft.testapp.utils.ktpViewModel
 
@@ -53,7 +52,7 @@ class ThirdPage : Router.ComposeScreen {
     
     override val content: @Composable (NavBackStackEntry, Bundle?) -> Unit = { _, data ->
         Log.d("test","ThirdPageUi called  owner ${LocalLifecycleOwner.current.hashCode()}")
-        FirstPageUi(data = data)
+        ThirdPageUi(data = data)
     }
 }
 
@@ -79,7 +78,7 @@ fun ThirdPageUi(
             text = localScopeIdentifier.current.hashCode().toString()
         )
         Text(
-            text = localtarget.current.hashCode().toString()
+            text = localCommonModel.current.hashCode().toString()
         )
         Button(onClick = {
             viewModel.onUiAction(UiAction.FirstButtonClicked)
@@ -93,21 +92,21 @@ fun ThirdPageUi(
         }, modifier = modifier
             .width(200.dp)
         ) {
-            Text(text = "Move next")
+            Text(text = "Not impl")
         }
         
         Button(onClick = {
             viewModel.onUiAction(UiAction.ThirdButtonClicked)
         }, modifier = modifier
             .width(200.dp)) {
-            Text(text = "No")
+            Text(text = "Not impl")
         }
         
         Button(onClick = {
             viewModel.onUiAction(UiAction.FourButtonClicked)
         }, modifier = modifier
             .width(200.dp)) {
-            Text(text = "Open dialog")
+            Text(text = "Not impl")
         }
         
         Button(onClick = {

@@ -3,12 +3,11 @@ package com.starsoft.testapp.applicationFlow.rootFlow.thirdPageFlow
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import com.starsoft.skeleton.compose.baseViewModel.CommonModel
-import com.starsoft.skeleton.compose.baseViewModel.moveByRout
+import com.starsoft.skeleton.compose.baseViewModel.moveToTarget
 import com.starsoft.skeleton.compose.baseViewModel.setKeyboardState
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.skeleton.compose.util.opposite
-import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel
 import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel.Companion.testRootFlowSharedViewModel
 import com.starsoft.testapp.applicationFlow.SharedModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,7 +57,7 @@ class ThirdPageViewModel(
             UiAction.SecondButtonClicked -> TODO()
             UiAction.ThirdButtonClicked -> TODO()
             UiAction.FourButtonClicked -> TODO()
-            UiAction.FifeButtonClicked -> moveByRout(Router.MoveBack())
+            UiAction.FifeButtonClicked -> moveToTarget(Router.MoveBack())
         }
     }
 }

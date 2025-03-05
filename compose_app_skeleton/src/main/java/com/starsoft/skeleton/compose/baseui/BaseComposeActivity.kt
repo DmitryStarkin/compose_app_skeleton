@@ -6,6 +6,9 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.material.Snackbar
 import androidx.compose.material.SnackbarDuration
 import androidx.compose.material.SnackbarHost
@@ -16,28 +19,24 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.colorResource
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.starsoft.skeleton.compose.R
 import com.starsoft.skeleton.compose.baseViewModel.CommonModel
-import com.starsoft.skeleton.compose.baseViewModel.CommonModelImpl
 import com.starsoft.skeleton.compose.baseViewModel.CommonModelOwner
 import com.starsoft.skeleton.compose.baseViewModel.ActivityLevelAction
 import com.starsoft.skeleton.compose.navigation.Router
-import com.starsoft.skeleton.compose.navigation.RouterImpl
 import com.starsoft.skeleton.compose.navigation.getRFinishFlag
-import com.starsoft.skeleton.compose.navigation.localScopeIdentifier
 import com.starsoft.skeleton.compose.navigation.moveToActivity
 import com.starsoft.skeleton.compose.navigation.moveToService
 import com.starsoft.skeleton.compose.navigation.openWebLink
-import com.starsoft.skeleton.compose.transport.ErrorHandler
+import com.starsoft.skeleton.compose.navigation.tryStopAsService
 import com.starsoft.skeleton.compose.transport.Event
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.skeleton.compose.util.KeyboardListener
-import com.starsoft.skeleton.compose.util.hideKeyboard
+import com.starsoft.skeleton.compose.util.hideKeyboardByIMS
 import com.starsoft.skeleton.compose.util.isExtendInterface
 import com.starsoft.skeleton.compose.util.isInstanceOrExtend
 import com.starsoft.skeleton.compose.util.keyboardStateByVisibility
-import com.starsoft.skeleton.compose.util.showKeyboard
+import com.starsoft.skeleton.compose.util.showKeyboardByIMS
 
 
 /**
@@ -59,6 +58,7 @@ abstract class BaseComposeActivity: ComponentActivity(), CommonModelOwner {
         commonModel = obtainCommonModel()
         Log.d("test","obtained RootFlowSharedViewModel ${(commonModel).hashCode()}")
         keyboardListener = KeyboardListener(this, this) { isVisible ->
+            Log.d("test","keyboardListener keyboard $isVisible")
             commonModel.currentKeyboardState = keyboardStateByVisibility(isVisible)
         }
         setContent {
@@ -69,15 +69,13 @@ abstract class BaseComposeActivity: ComponentActivity(), CommonModelOwner {
     }
     
     @Composable
-    open fun HandleApplicationRout(rout: Event<Router.Rout>){
-        Log.d("test","HandleApplicationRout $rout")
-        rout.getContentIfNotHandled()?.let {
+    open fun HandleApplicationRout(navigationTarget: Event<Router.NavigationTarget>){
+        navigationTarget.getContentIfNotHandled()?.let {
+            Log.d("test","HandleApplicationRout $it")
             if(it.destination.isExtendInterface(Router.ComposeDestination::class.java)){
                 throw(Exception("must handled in common model"))
             } else {
-                rout.getContentIfNotHandled()?.apply {
-                    moveToApplicationRout(this)
-                }
+                moveToApplicationRout(it)
             }
         }
     }
@@ -129,38 +127,47 @@ abstract class BaseComposeActivity: ComponentActivity(), CommonModelOwner {
         }
     }
     
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     private fun HandleGlobalActions(event: State<ActivityLevelAction>){
-        
-        when(val action = event.value){
-            is ActivityLevelAction.NavigationAction ->{
-                HandleApplicationRout(action.rout)
+        Log.d("test","HandleGlobalActions ${event} ")
+        when(val action = event.value) {
+            is ActivityLevelAction.NavigationAction -> {
+                HandleApplicationRout(action.navigationTarget)
             }
             
-            is ActivityLevelAction.MessageAction ->{
+            is ActivityLevelAction.MessageAction -> {
                 HandleMessage(action.message)
             }
             
-            is ActivityLevelAction.ErrorMessageAction ->{
+            is ActivityLevelAction.ErrorMessageAction -> {
                 HandleErrorMessage(action.message)
             }
             
-            is ActivityLevelAction.KeyboardAction -> if(action.keyboardState.visible){
-                showKeyboard()
+            is ActivityLevelAction.KeyboardAction -> {
+                
+                Log.d("test", "keyboard current ${commonModel.currentKeyboardState} ")
+                if (action.keyboardState.visible) {
+                Log.d("test", "try show keyboard current ${WindowInsets.isImeVisible} ")
+                //LocalSoftwareKeyboardController.current?.show()
+                showKeyboardByIMS()
             } else {
-                hideKeyboard()
+                Log.d("test", "try hide keyboardcurrent ${WindowInsets.isImeVisible} ")
+                //LocalSoftwareKeyboardController.current?.hide()
+                hideKeyboardByIMS()
             }
+        }
         }
     }
     
     
-    private fun moveToApplicationRout(rout: Router.Rout, data: Bundle? = null){
-        Log.d("test","moveTo ${rout.destination.name}")
-        if(rout is Router.Rout.RoutStub) {
+    private fun moveToApplicationRout(navigationTarget: Router.NavigationTarget, data: Bundle? = null){
+        Log.d("test","moveTo ${navigationTarget.destination.name}")
+        if(navigationTarget is Router.NavigationTarget.NavigationTargetStub) {
             return
         }
         
-        val unionData = rout.data?.let {
+        val unionData = navigationTarget.data?.let {
             data?.apply {
                 it.putAll(this)
             }
@@ -169,20 +176,24 @@ abstract class BaseComposeActivity: ComponentActivity(), CommonModelOwner {
         
         when {
             
-            rout.destination.isInstanceOrExtend(Router.Close::class.java) -> {
+            navigationTarget.destination.isInstanceOrExtend(Router.Close::class.java) -> {
                 this.finish()
             }
             
-            rout.destination.isInstanceOrExtend(Activity::class.java) -> {
-                this.moveToActivity(rout.destination, unionData)
+            navigationTarget.destination.isInstanceOrExtend(Activity::class.java) -> {
+                this.moveToActivity(navigationTarget.destination, unionData)
             }
             
-            rout.destination.isInstanceOrExtend(Service::class.java) -> {
-                this.moveToService(rout.destination, unionData)
+            navigationTarget.destination.isInstanceOrExtend(Service::class.java) -> {
+                this.moveToService(navigationTarget.destination, unionData)
             }
             
-            rout is Router.Rout.OpenLink -> {
-                this.openWebLink(rout.link)
+            navigationTarget.destination.isInstanceOrExtend(Router.StopService::class.java) -> {
+                this.tryStopAsService(navigationTarget.destination)
+            }
+            
+            navigationTarget is Router.NavigationTarget.OpenLink -> {
+                this.openWebLink(navigationTarget.link)
             }
         }
         

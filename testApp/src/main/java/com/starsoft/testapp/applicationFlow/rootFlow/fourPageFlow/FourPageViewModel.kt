@@ -1,22 +1,18 @@
 package com.starsoft.testapp.applicationFlow.rootFlow.fourPageFlow
 
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.ViewModel
 import com.starsoft.skeleton.compose.baseViewModel.CommonModel
-import com.starsoft.skeleton.compose.baseViewModel.moveByRout
+import com.starsoft.skeleton.compose.baseViewModel.moveToTarget
 import com.starsoft.skeleton.compose.baseViewModel.showMessage
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
-import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel
 import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel.Companion.testRootFlowSharedViewModel
 import com.starsoft.testapp.applicationFlow.SharedModel
-import com.starsoft.testapp.applicationFlow.rootFlow.RootActivity
 import com.starsoft.testapp.applicationFlow.rootFlow.firstPageFlow.data.FourPageRepo
 import com.starsoft.testapp.utils.KTPAutoScopeCloseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import toothpick.InjectConstructor
-import toothpick.ktp.KTP
 
 
 /**
@@ -62,7 +58,7 @@ class FourPageViewModel(
             UiAction.SecondButtonClicked -> TODO()
             UiAction.ThirdButtonClicked -> TODO()
             UiAction.FourButtonClicked -> TODO()
-            UiAction.FifeButtonClicked -> moveByRout(Router.MoveBack())
+            UiAction.FifeButtonClicked -> moveToTarget(Router.MoveBack())
         }
     }
 }

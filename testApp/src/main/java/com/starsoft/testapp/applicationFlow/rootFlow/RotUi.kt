@@ -24,9 +24,12 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.rememberNavController
+import com.starsoft.skeleton.compose.baseui.CircularProgressSpinner
 import com.starsoft.skeleton.compose.navigation.listOf
 import com.starsoft.skeleton.compose.navigation.Router
+import com.starsoft.skeleton.compose.navigation.addBackButtonBehavior
 import com.starsoft.skeleton.compose.navigation.localScopeIdentifier
+import com.starsoft.skeleton.compose.navigation.simpleProperties
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.testapp.R
 import com.starsoft.testapp.applicationFlow.rootFlow.RootUIViewModel.Companion.testRootUIViewModel
@@ -64,6 +67,11 @@ class RootScreen : Router.ComposeScreen {
     override fun onCreate(owner: LifecycleOwner) {
         Log.d("test","RootScreen  ${this.hashCode()} onCreated owne ${owner.hashCode()} ")
     }
+    
+    override fun onDestroy(owner: LifecycleOwner) {
+        Log.d("test","RootScreen ${this.hashCode()} Destroy owner ${owner.hashCode()} ")
+    }
+    
     override val content: @Composable (NavBackStackEntry,  Bundle?) -> Unit = { _, _, ->
         Log.d("test","localDestinationID ${localScopeIdentifier.current} ")
         Log.d("test","RootScreen called  owner ${LocalLifecycleOwner.current.hashCode()}")
@@ -77,7 +85,7 @@ fun RootUi(
         modifier: Modifier = Modifier,
         viewModel: RootUIViewModel = ktpViewModel<RootUIViewModel>(RootActivity::class)
 ) {
-    Log.d("test","FirstPage obtained viewModel ${viewModel.hashCode()}")
+    Log.d("test","RootScreen obtained viewModel ${viewModel.hashCode()}")
     val uiState = viewModel.uiState.collectAsState()
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -103,12 +111,12 @@ fun RootUi(
         ) {
             val navController = rememberNavController()
             viewModel.CreateNavHostHere(navController, listOf(
-                FirstPage::class.java,
-                SecondPage::class.java,
-                ThirdPage::class.java,
-                FourPage::class.java
-            ))
-            viewModel.onUiAction(UiAction.OnBottomTabButtonClicked(BottomTab.FirstTab))
+                FirstPage::class.java.simpleProperties().addBackButtonBehavior(Router.BackPressBehavior.Default),
+                SecondPage::class.java.simpleProperties().addBackButtonBehavior(Router.BackPressBehavior.Default),
+                ThirdPage::class.java.simpleProperties().addBackButtonBehavior(Router.BackPressBehavior.Default),
+                FourPage::class.java.simpleProperties().addBackButtonBehavior(Router.BackPressBehavior.Default)
+            ), FirstPage::class.java.simpleProperties() )
+            //viewModel.onUiAction(UiAction.OnBottomTabButtonClicked(BottomTab.FirstTab))
         }
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,11 +18,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavBackStackEntry
+import com.starsoft.skeleton.compose.baseui.CircularProgressSpinner
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.navigation.localDestinationClass
 import com.starsoft.skeleton.compose.navigation.localScopeIdentifier
-import com.starsoft.skeleton.compose.navigation.localtarget
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
+import com.starsoft.skeleton.compose.util.extractState
 import com.starsoft.testapp.applicationFlow.rootFlow.RootActivity
 import com.starsoft.testapp.applicationFlow.rootFlow.secondPageFlow.SecondPageViewModel.Companion.testSecondPageViewModel
 import com.starsoft.testapp.utils.ktpViewModel
@@ -52,7 +54,10 @@ class SecondPage : Router.ComposeScreen {
     
     override val content: @Composable (NavBackStackEntry, Bundle?) -> Unit = { _, data ->
         Log.d("test","SecondPageUi called  owner ${LocalLifecycleOwner.current.hashCode()}")
-        SecondPageUi(data = data)
+        SecondPageUi(
+            data = data,
+            viewModel = ktpViewModel<SecondPageViewModel>(RootActivity::class)
+        )
     }
 }
 
@@ -60,7 +65,7 @@ class SecondPage : Router.ComposeScreen {
 fun SecondPageUi(
         modifier: Modifier = Modifier,
         data: Bundle?,
-        viewModel: SecondPageViewModel = ktpViewModel<SecondPageViewModel>(RootActivity::class))
+        viewModel: SecondPageViewModel)
 {
     Log.d("test","SecondPage obtained viewModel ${viewModel.hashCode()}")
     
@@ -77,9 +82,6 @@ fun SecondPageUi(
         Text(
             text = localScopeIdentifier.current.hashCode().toString()
         )
-        Text(
-            text = localtarget.current.hashCode().toString()
-        )
         Button(onClick = {
             viewModel.onUiAction(UiAction.FirstButtonClicked)
         }, modifier = modifier
@@ -92,21 +94,21 @@ fun SecondPageUi(
         }, modifier = modifier
             .width(200.dp)
         ) {
-            Text(text = "Move next")
+            Text(text = "Show Spinner")
         }
         
         Button(onClick = {
             viewModel.onUiAction(UiAction.ThirdButtonClicked)
         }, modifier = modifier
             .width(200.dp)) {
-            Text(text = "not")
+            Text(text = "Not impl")
         }
         
         Button(onClick = {
             viewModel.onUiAction(UiAction.FourButtonClicked)
         }, modifier = modifier
             .width(200.dp)) {
-            Text(text = "Open dialog")
+            Text(text = "Not impl")
         }
         
         Button(onClick = {
@@ -115,10 +117,25 @@ fun SecondPageUi(
             .width(200.dp)) {
             Text(text = "Move back")
         }
-        if(uiState.value.baskText.isNotEmpty() ){
-            Text(
-                text = uiState.value.baskText
-            )
-        }
+        BottomText(
+            viewModel.uiState.extractState {
+               baskText
+            }
+        )
+    }
+
+    CircularProgressSpinner( viewModel.uiState.extractState { spinnerVisibility })
+}
+
+@Composable
+fun BottomText(
+        textState: State<String>
+){
+    Log.d("test","BottomText called")
+    
+    if(textState.value.isNotEmpty() ){
+        Text(
+            text = "curremt time ${textState.value}"
+        )
     }
 }

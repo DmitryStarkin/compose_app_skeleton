@@ -6,14 +6,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.starsoft.skeleton.compose.baseViewModel.CommonModel
 import com.starsoft.skeleton.compose.baseViewModel.ExternalEvent
-import com.starsoft.skeleton.compose.baseViewModel.OnNavigateEvent
-import com.starsoft.skeleton.compose.baseViewModel.moveByRout
+import com.starsoft.skeleton.compose.baseViewModel.NavigationEvent
+import com.starsoft.skeleton.compose.baseViewModel.moveToTarget
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
-import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel
 import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel.Companion.testRootFlowSharedViewModel
 import com.starsoft.testapp.applicationFlow.SharedModel
-import com.starsoft.testapp.applicationFlow.rootFlow.targets
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -24,8 +22,9 @@ import toothpick.InjectConstructor
  * Created by Dmitry Starkin on 27.02.2025 15:33.
  */
 
+const val COUNT_START_VALUE = 60
+
 sealed interface UiAction{
-   
     data object FirstButtonClicked: UiAction
     data object SecondButtonClicked: UiAction
     data object ThirdButtonClicked: UiAction
@@ -36,6 +35,7 @@ sealed interface UiAction{
 
 data class UiState(
         val baskText: String = EMPTY_STRING,
+        val countDo: Int = COUNT_START_VALUE
 )
 
 val MY_BACK_DATA_KEY ="com.starsoft.testapp.applicationflow.rootFlow.firstPageFlow.FirstPageModel.backData"
@@ -50,7 +50,7 @@ class FirstPageViewModel(
        val testFirstPageViewModel: FirstPageViewModel @Composable
        get() = FirstPageViewModel(testRootFlowSharedViewModel).also {
            it._uiState.value =
-               UiState("Test")
+               UiState("Test", 60)
            }
     }
     
@@ -65,20 +65,23 @@ class FirstPageViewModel(
     fun onUiAction(action: UiAction){
         when(action){
                 UiAction.FirstButtonClicked -> errorHandler.handleThrowable(Exception("TestException"))
-                UiAction.SecondButtonClicked -> TODO()
-                UiAction.ThirdButtonClicked -> TODO()
-                UiAction.FourButtonClicked -> TODO()
-                UiAction.FifeButtonClicked -> moveByRout(Router.MoveBack())
+                UiAction.SecondButtonClicked -> _uiState.value = _uiState.value.copy(countDo = _uiState.value.countDo + 1)
+                UiAction.ThirdButtonClicked -> _uiState.value = _uiState.value.copy(countDo = _uiState.value.countDo - 1)
+                UiAction.FourButtonClicked -> _uiState.value = _uiState.value.copy(baskText = "${System.currentTimeMillis()}")
+                UiAction.FifeButtonClicked -> moveToTarget(Router.MoveBack())
             }
         }
+    
     private fun startNavigationEvents(){
         viewModelScope.launch {
-            Log.d("test","onGlobalAction send")
-            navigationEventFlow.collect{
-                when(it){
-                    is OnNavigateEvent.BackDataEvent -> handleBackEvent(it)
-                    is OnNavigateEvent.OnNavigate -> handleNavigationEvent(it)
-                }
+             navigationEventFlow.collect {
+                 when(it){
+                     is NavigationEvent.BackDataEvent -> handleBackEvent(it)
+                     is NavigationEvent.NavigateSusses -> handleNavigationEvent(it)
+                     is NavigationEvent.BackPressed -> {
+                        //TODO
+                      }
+                 }
             }
         }
     }
@@ -87,11 +90,11 @@ class FirstPageViewModel(
         Log.d("test","collected $event")
     }
     
-    private fun handleBackEvent(event: OnNavigateEvent.BackDataEvent){
+    private fun handleBackEvent(event: NavigationEvent.BackDataEvent){
         Log.d("test","FirstPage collected BackDataEvent $event")
     }
     
-    private fun handleNavigationEvent(event: OnNavigateEvent.OnNavigate){
+    private fun handleNavigationEvent(event: NavigationEvent.NavigateSusses){
         Log.d("test","FirstPage collected OnNavigate $event")
         
     }

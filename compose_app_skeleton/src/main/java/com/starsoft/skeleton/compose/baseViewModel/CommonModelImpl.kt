@@ -12,13 +12,9 @@ import com.starsoft.skeleton.compose.navigation.RouterImpl
 import com.starsoft.skeleton.compose.transport.ErrorHandler
 import com.starsoft.skeleton.compose.util.KeyboardState
 import com.starsoft.skeleton.compose.util.isExtendInterface
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
-
 
 /**
  * Created by Dmitry Starkin on 26.02.2025 15:29.
@@ -27,22 +23,19 @@ class CommonModelImpl(override val errorHandler: ErrorHandler, private val route
     HostCreator by router{
     
     companion object{
-        val testCommonViewModel: CommonModel @Composable
-        get() = CommonModelImpl(ErrorHandler(LocalContext.current), RouterImpl())
+        val testCommonViewModel: CommonModel @Composable get() = CommonModelImpl(ErrorHandler(LocalContext.current), RouterImpl())
     }
     
-    private val mActivityLevelActionChannel = Channel<ActivityLevelAction>()
-    override val activityLevelActionFlow: Flow<ActivityLevelAction> = mActivityLevelActionChannel.receiveAsFlow()
+    private val _activityLevelActionFlow = MutableSharedFlow<ActivityLevelAction>()
+    override val activityLevelActionFlow: SharedFlow<ActivityLevelAction> = _activityLevelActionFlow
     
-    private val mExternalActionChannel = Channel<ExternalEvent>()
-    override val externalEventFlow: Flow<ExternalEvent> = mExternalActionChannel.receiveAsFlow()
+    private val _externalActionFlow = MutableSharedFlow<ExternalEvent>()
+    override val externalEventFlow: SharedFlow<ExternalEvent> = _externalActionFlow
     
-    private val _backEventChannel = Channel<OnNavigateEvent>()
-    override val navigationEventFlow: Flow<OnNavigateEvent> = _backEventChannel.receiveAsFlow()
-    
+    private val _navigationEventFlow = MutableSharedFlow<NavigationEvent>()
+    override val navigationEventFlow: SharedFlow<NavigationEvent> = _navigationEventFlow
     
     override var currentKeyboardState: KeyboardState = KeyboardState.Hidden
-    
     
     init {
         router.commonModel = this
@@ -51,43 +44,43 @@ class CommonModelImpl(override val errorHandler: ErrorHandler, private val route
     
     private fun initErrorObserver() {
         viewModelScope.launch {
-            errorHandler.getError().collect { value ->
+            errorHandler.errorFlow.collect { value ->
                 performActivityLevelAction(obtainErrorMessageAction(value))
             }
         }
     }
     
     override fun performActivityLevelAction(event: ActivityLevelAction) {
-        if(event is ActivityLevelAction.NavigationAction && event.rout.peekContent().destination.isExtendInterface(Router.ComposeDestination::class.java)){
-            event.rout.getContentIfNotHandled()?.let{
+        if(event is ActivityLevelAction.NavigationAction && event.navigationTarget.peekContent().destination.isExtendInterface(Router.ComposeDestination::class.java)){
+            event.navigationTarget.getContentIfNotHandled()?.let{
                 router.moveTo(it)
             }
         } else {
             viewModelScope.launch {
-                Log.d("test","onGlobalAction send")
-                mActivityLevelActionChannel.send(event)
+                Log.d("test", "onGlobalAction send")
+                _activityLevelActionFlow.emit(event)
             }
         }
     }
     
     override fun onExternalEvent(event: ExternalEvent) {
-        viewModelScope.launch {
             Log.d("test","ExternalEvent send")
-            mExternalActionChannel.send(event)
-        }
-    }
-    
-    override fun putNavigateEvent(event: OnNavigateEvent) {
         viewModelScope.launch {
-            Log.d("test","BackDataEvent send")
-            _backEventChannel.send(event)
+            _externalActionFlow.emit(event)
         }
     }
     
-    override fun onCleared() {
-        super.onCleared()
-        _backEventChannel.close()
-        mExternalActionChannel.close()
-        mActivityLevelActionChannel.close()
+    override fun onBackPressed(target: String) {
+        viewModelScope.launch {
+            _navigationEventFlow.emit(NavigationEvent.BackPressed(target))
+        }
+    }
+    
+    override fun putNavigateEvent(event: NavigationEvent) {
+            Log.d("test","NavigateEvent send")
+        viewModelScope.launch {
+            _navigationEventFlow.emit(event)
+        }
+        
     }
 }

@@ -3,11 +3,10 @@ package com.starsoft.testapp.applicationFlow.rootFlow.secondPageFlow
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import com.starsoft.skeleton.compose.baseViewModel.CommonModel
-import com.starsoft.skeleton.compose.baseViewModel.moveByRout
+import com.starsoft.skeleton.compose.baseViewModel.moveToTarget
 import com.starsoft.skeleton.compose.baseViewModel.showMessage
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
-import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel
 import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel.Companion.testRootFlowSharedViewModel
 import com.starsoft.testapp.applicationFlow.SharedModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +17,8 @@ import toothpick.InjectConstructor
 /**
  * Created by Dmitry Starkin on 28.02.2025 12:40.
  */
+
+
 sealed interface UiAction{
     
     data object FirstButtonClicked: UiAction
@@ -27,9 +28,9 @@ sealed interface UiAction{
     data object FifeButtonClicked: UiAction
 }
 
-
 data class UiState(
         val baskText: String = EMPTY_STRING,
+        val spinnerVisibility: Boolean = false
 )
 
 val MY_BACK_DATA_KEY ="com.starsoft.testapp.applicationflow.rootFlow.secondPageFlow.SecondPageViewModel.backData"
@@ -44,7 +45,7 @@ class SecondPageViewModel(
         val testSecondPageViewModel: SecondPageViewModel @Composable
         get() = SecondPageViewModel(testRootFlowSharedViewModel).also {
                 it._uiState.value =
-                    UiState("Test")
+                    UiState("Test", true)
             }
     }
     
@@ -54,10 +55,10 @@ class SecondPageViewModel(
     fun onUiAction(action: UiAction){
         when(action){
             UiAction.FirstButtonClicked -> showMessage("Test message")
-            UiAction.SecondButtonClicked -> TODO()
+            UiAction.SecondButtonClicked -> _uiState.value = _uiState.value.copy(spinnerVisibility = !_uiState.value.spinnerVisibility)
             UiAction.ThirdButtonClicked -> TODO()
             UiAction.FourButtonClicked -> TODO()
-            UiAction.FifeButtonClicked -> moveByRout(Router.MoveBack())
+            UiAction.FifeButtonClicked -> moveToTarget(Router.MoveBack())
         }
     }
 }

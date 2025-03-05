@@ -2,9 +2,12 @@ package com.starsoft.skeleton.compose.transport
 
 import android.content.Context
 import com.starsoft.skeleton.compose.R
+import com.starsoft.skeleton.compose.baseViewModel.ActivityLevelAction
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
@@ -22,14 +25,17 @@ open class ErrorHandler(
         private const val RESPONSE_CLOSED_MESSAGE = "closed"
     }
     
-    private val _error = Channel<String>()
-    fun getError(): Flow<String> = _error.receiveAsFlow()
+//    private val _error = Channel<String>()
+//    fun getError(): Flow<String> = _error.receiveAsFlow()
+    
+    private val _error = MutableSharedFlow<String>()
+    val errorFlow: SharedFlow<String> = _error
     
     var ignoredTroubles: List<Class<*>> = emptyList()
     
     private fun sendError(error: String) {
         MainScope().launch {
-            _error.send(error)
+            _error.emit(error)
         }
     }
     

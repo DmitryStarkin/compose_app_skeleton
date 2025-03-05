@@ -7,8 +7,7 @@ import com.starsoft.skeleton.compose.transport.ErrorHandler
 import com.starsoft.skeleton.compose.transport.Event
 import com.starsoft.skeleton.compose.util.KeyboardState
 import com.starsoft.skeleton.compose.util.KeyedData
-import kotlinx.coroutines.flow.Flow
-
+import kotlinx.coroutines.flow.SharedFlow
 
 /**
  * Created by Dmitry Starkin on 26.02.2025 15:17.
@@ -27,14 +26,19 @@ sealed interface ActivityLevelAction{
                 ErrorMessageAction(Event(text))
         }
     }
-    data class NavigationAction(val rout: Event<Router.Rout>): ActivityLevelAction{
+    data class NavigationAction(val navigationTarget: Event<Router.NavigationTarget>): ActivityLevelAction{
         companion object{
-            fun obtainNavigationAction(rout: Router.Rout): NavigationAction =
-                NavigationAction(Event(rout))
+            fun obtainNavigationAction(navigationTarget: Router.NavigationTarget): NavigationAction =
+                NavigationAction(Event(navigationTarget))
         }
     }
     
-    data class KeyboardAction(val keyboardState: KeyboardState): ActivityLevelAction
+    data class KeyboardAction(val keyboardState: KeyboardState, val marker: Long): ActivityLevelAction{
+        companion object{
+            fun obtainKeyboardAction(keyboardState: KeyboardState): KeyboardAction =
+                KeyboardAction(keyboardState, System.currentTimeMillis() )
+        }
+    }
 }
 
 sealed interface ExternalEvent{
@@ -46,21 +50,22 @@ sealed interface ExternalEvent{
     }
 }
 
-sealed interface OnNavigateEvent{
-    data class BackDataEvent(val data: KeyedData): OnNavigateEvent {
+sealed interface NavigationEvent{
+    data class BackDataEvent(val data: KeyedData): NavigationEvent {
         companion object{
             fun obtainBackKeyedDataEvent(key: String, data: Bundle): BackDataEvent =
                 BackDataEvent(KeyedData(key, data))
         }
     }
-    data class OnNavigate(val reachedTarget: String): OnNavigateEvent
+    data class NavigateSusses(val reachedTarget: String): NavigationEvent
+    data class BackPressed(val currentTarget: String): NavigationEvent
 }
 
 interface CommonModel: HostCreator {
     val errorHandler: ErrorHandler
-    val activityLevelActionFlow: Flow<ActivityLevelAction>
-    val externalEventFlow: Flow<ExternalEvent>
-    val navigationEventFlow: Flow<OnNavigateEvent>
+    val activityLevelActionFlow: SharedFlow<ActivityLevelAction>
+    val externalEventFlow: SharedFlow<ExternalEvent>
+    val navigationEventFlow: SharedFlow<NavigationEvent>
     
     var currentKeyboardState: KeyboardState
     
@@ -68,7 +73,9 @@ interface CommonModel: HostCreator {
     
     fun onExternalEvent(event: ExternalEvent)
     
-    fun putNavigateEvent(event: OnNavigateEvent)
+    fun onBackPressed(target: String)
+    
+    fun putNavigateEvent(event: NavigationEvent)
 }
 
 interface CommonModelOwner{

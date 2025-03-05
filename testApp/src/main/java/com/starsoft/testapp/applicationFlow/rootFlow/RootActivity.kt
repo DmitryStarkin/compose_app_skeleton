@@ -6,11 +6,9 @@ import androidx.compose.runtime.Composable
 import com.starsoft.testapp.utils.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.starsoft.skeleton.compose.baseViewModel.CommonModel
-import com.starsoft.skeleton.compose.baseViewModel.ActivityLevelAction.NavigationAction.Companion.obtainNavigationAction
 import com.starsoft.skeleton.compose.baseui.BaseComposeActivity
 import com.starsoft.testapp.applicationFlow.rootFlow.di.modules.mainModule
 import com.starsoft.skeleton.compose.navigation.listOf
-import com.starsoft.skeleton.compose.navigation.simpleRout
 import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel
 import com.starsoft.testapp.applicationFlow.SharedModel
 import toothpick.Scope
@@ -21,8 +19,6 @@ import javax.inject.Provider
 /**
  * Created by Dmitry Starkin on 26.02.2025 16:08.
  */
-
-
 class RootActivity : BaseComposeActivity(), Provider<SharedModel>{
     
     companion object{
@@ -46,8 +42,8 @@ class RootActivity : BaseComposeActivity(), Provider<SharedModel>{
     override fun SetRootUi() {
         Log.d("test","SetRootUi")
         val controller = rememberNavController()
-        commonModel.CreateNavHostHere(controller, listOf(RootScreen::class.java))
-        commonModel.performActivityLevelAction(obtainNavigationAction(RootScreen::class.java.simpleRout()))
+        commonModel.CreateNavHostHere(controller, listOf(RootScreen::class.java), RootScreen::class.java)
+        //commonModel.performActivityLevelAction(obtainNavigationAction(RootScreen::class.java.simpleRout()))
     }
     
     override fun get(): SharedModel = commonModel as SharedModel

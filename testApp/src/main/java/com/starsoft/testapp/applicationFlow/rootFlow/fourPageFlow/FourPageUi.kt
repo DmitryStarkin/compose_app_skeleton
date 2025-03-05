@@ -20,7 +20,7 @@ import androidx.navigation.NavBackStackEntry
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.navigation.localDestinationClass
 import com.starsoft.skeleton.compose.navigation.localScopeIdentifier
-import com.starsoft.skeleton.compose.navigation.localtarget
+import com.starsoft.skeleton.compose.navigation.localCommonModel
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.testapp.applicationFlow.rootFlow.RootActivity.Companion.openParentScopes
 import com.starsoft.testapp.applicationFlow.rootFlow.firstPageFlow.di.modules.fourModule
@@ -69,7 +69,7 @@ fun FourPageUi(
         data: Bundle?,
         viewModel: FourPageViewModel = ktpViewModel<FourPageViewModel>(localScopeIdentifier.current))
 {
-    Log.d("test","FirstPage obtained viewModel ${viewModel.hashCode()}")
+    Log.d("test","FourPage obtained viewModel ${viewModel.hashCode()}")
     
     val uiState = viewModel.uiState.collectAsState()
     
@@ -84,9 +84,7 @@ fun FourPageUi(
         Text(
             text = localScopeIdentifier.current.hashCode().toString()
         )
-        Text(
-            text = localtarget.current.hashCode().hashCode().toString()
-        )
+        
         Button(onClick = {
             viewModel.onUiAction(UiAction.FirstButtonClicked)
         }, modifier = modifier
@@ -99,7 +97,7 @@ fun FourPageUi(
         }, modifier = modifier
             .width(200.dp)
         ) {
-            Text(text = "Move Second")
+            Text(text = "Not impl")
         }
         
         Button(onClick = {
@@ -113,7 +111,7 @@ fun FourPageUi(
             viewModel.onUiAction(UiAction.FourButtonClicked)
         }, modifier = modifier
             .width(200.dp)) {
-            Text(text = "Open dialog")
+            Text(text = "Not impl")
         }
         
         Button(onClick = {

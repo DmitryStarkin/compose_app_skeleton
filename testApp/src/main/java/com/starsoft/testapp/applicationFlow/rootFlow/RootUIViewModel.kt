@@ -7,13 +7,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.starsoft.skeleton.compose.baseViewModel.OnNavigateEvent
+import com.starsoft.skeleton.compose.baseViewModel.NavigationEvent
 import com.starsoft.skeleton.compose.baseViewModel.CommonModel
 import com.starsoft.skeleton.compose.baseViewModel.ExternalEvent
-import com.starsoft.skeleton.compose.baseViewModel.moveByRout
+import com.starsoft.skeleton.compose.baseViewModel.moveToTarget
 import com.starsoft.skeleton.compose.navigation.Router
+import com.starsoft.skeleton.compose.navigation.addPopUpOption
 import com.starsoft.skeleton.compose.navigation.simpleProperties
-import com.starsoft.skeleton.compose.navigation.simpleRout
+import com.starsoft.skeleton.compose.navigation.simpleTarget
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel.Companion.testRootFlowSharedViewModel
 import com.starsoft.testapp.applicationFlow.SharedModel
@@ -73,13 +74,12 @@ class RootUIViewModel(
         Log.d("test","RootViewModel init SharedViewModel ${rootFlowSharedViewModel.hashCode()} with commonModel ${rootFlowSharedViewModel.commonModel.hashCode()} ")
         startCollectExternalEvents()
         startNavigationEvents()
-        //onUiAction(UiAction.onBottomTabButtonClicked(BottomTab.FirstTab))
     }
     
     fun onUiAction(action: UiAction){
         when(action){
             is UiAction.OnBottomTabButtonClicked -> {
-                moveByRout(action.tab.destination.simpleRout())
+                moveToTarget(action.tab.destination.simpleTarget().addPopUpOption(_uiState.value.currentTarget, inclusive = true, saveData = true))
             }
         }
     }
@@ -95,11 +95,11 @@ class RootUIViewModel(
     
     private fun startNavigationEvents(){
         viewModelScope.launch {
-            Log.d("test","onGlobalAction send")
-            navigationEventFlow.collect{
+            navigationEventFlow.collect {
                 when(it){
-                    is OnNavigateEvent.BackDataEvent -> handleBackEvent(it)
-                    is OnNavigateEvent.OnNavigate -> handleNavigationEvent(it)
+                    is NavigationEvent.BackDataEvent -> handleBackEvent(it)
+                    is NavigationEvent.NavigateSusses -> handleNavigationEvent(it)
+                    is NavigationEvent.BackPressed -> {}
                 }
             }
         }
@@ -109,13 +109,13 @@ class RootUIViewModel(
         Log.d("test","collected $event")
     }
     
-    private fun handleBackEvent(event: OnNavigateEvent.BackDataEvent){
+    private fun handleBackEvent(event: NavigationEvent.BackDataEvent){
         Log.d("test","root collected BackDataEvent $event")
     }
     
-    private fun handleNavigationEvent(event: OnNavigateEvent.OnNavigate){
+    private fun handleNavigationEvent(event: NavigationEvent.NavigateSusses){
         Log.d("test","root collected OnNavigate $event")
-        if(event.reachedTarget in targets){
+        if(event.reachedTarget in targets || event.reachedTarget.isEmpty()){
             _uiState.value =  _uiState.value.copy(
                 currentTarget = event.reachedTarget
             )

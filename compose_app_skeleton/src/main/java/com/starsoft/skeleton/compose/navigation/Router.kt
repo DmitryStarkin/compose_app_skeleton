@@ -24,9 +24,9 @@ interface Router: HostCreator {
     
     var commonModel: CommonModel?
     
-    fun moveTo(rout: Rout, data: Bundle? = null)
+    fun moveTo(navigationTarget: NavigationTarget, data: Bundle? = null)
     
-    interface Rout {
+    interface NavigationTarget {
         val destination: Class<*>
         val tag: String get() = EMPTY_STRING
         val options: NavOptions? get() = null
@@ -36,11 +36,11 @@ interface Router: HostCreator {
         
         val onTargetReached: ((String) -> Unit)? get() = null
         
-        class RoutStub(): Rout{
-            override val destination = RoutStub::class.java
+        class NavigationTargetStub(): NavigationTarget {
+            override val destination = NavigationTargetStub::class.java
         }
         
-        data class OpenLink(val link: String) : Rout {
+        data class OpenLink(val link: String) : NavigationTarget {
             override val destination: Class<*>
                 get() = OpenLink::class.java
         }
@@ -62,6 +62,7 @@ interface Router: HostCreator {
     interface DestinationProperties {
         val destination: Class<out Router.ComposeDestination>
         val tag: String
+        val backPressHandleBehavior: BackPressBehavior get() =  BackPressBehavior.BySystem
         val enterTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? get() = null
         val exitTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? get() = null
         val popEnterTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? get() = enterTransition
@@ -86,13 +87,23 @@ interface Router: HostCreator {
     interface ComposeDialog: ComposeDestination
     interface NestedNavigation: ComposeDestination
     
-    class Close(): Rout {
+    enum class BackPressBehavior{
+        BySystem,
+        Default,
+        SendToMe
+    }
+    
+    class Close(): NavigationTarget {
         override val destination = Close::class.java
+    }
+    
+    data class StopService(private val service:  Class<*>): NavigationTarget {
+        override val destination =service
     }
     
     data class MoveBack(val keyedData: KeyedData? = null,
                         val destAsHostMarker: String? = null,
-                        override val onTargetReached: ((String) -> Unit)?  = null): Rout, ComposeDestination {
+                        override val onTargetReached: ((String) -> Unit)?  = null): NavigationTarget, ComposeDestination {
         override val destination = MoveBack::class.java
         override val content: @Composable (NavBackStackEntry, Bundle?) -> Unit = { _, _ ->}
     }
@@ -100,7 +111,7 @@ interface Router: HostCreator {
     data class PopUpTo(val where: DestinationProperties,
                        override val data: Bundle?,
                        val inclusive: Boolean = true,
-                       val saveData: Boolean = true): Rout, ComposeDestination {
+                       val saveData: Boolean = true): NavigationTarget, ComposeDestination {
         override val destination get() =  where.destination
         override val content: @Composable (NavBackStackEntry, Bundle?) -> Unit = { _, _ ->}
     }
