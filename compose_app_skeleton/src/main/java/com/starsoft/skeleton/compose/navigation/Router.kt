@@ -39,11 +39,6 @@ interface Router: HostCreator {
         class NavigationTargetStub(): NavigationTarget {
             override val destination = NavigationTargetStub::class.java
         }
-        
-        data class OpenLink(val link: String) : NavigationTarget {
-            override val destination: Class<*>
-                get() = OpenLink::class.java
-        }
     }
     
     interface ComposeDestination: LifecycleSupport {
@@ -97,12 +92,17 @@ interface Router: HostCreator {
         override val destination = Close::class.java
     }
     
+    data class OpenLink(val link: String) : NavigationTarget {
+        override val destination: Class<*>
+            get() = OpenLink::class.java
+    }
+    
     data class StopService(private val service:  Class<*>): NavigationTarget {
         override val destination =service
     }
     
     data class MoveBack(val keyedData: KeyedData? = null,
-                        val destAsHostMarker: String? = null,
+                        val hostMarker: String? = null,
                         override val onTargetReached: ((String) -> Unit)?  = null): NavigationTarget, ComposeDestination {
         override val destination = MoveBack::class.java
         override val content: @Composable (NavBackStackEntry, Bundle?) -> Unit = { _, _ ->}

@@ -192,7 +192,7 @@ abstract class BaseComposeActivity: ComponentActivity(), CommonModelOwner {
                 this.tryStopAsService(navigationTarget.destination)
             }
             
-            navigationTarget is Router.NavigationTarget.OpenLink -> {
+            navigationTarget is Router.OpenLink -> {
                 this.openWebLink(navigationTarget.link)
             }
         }

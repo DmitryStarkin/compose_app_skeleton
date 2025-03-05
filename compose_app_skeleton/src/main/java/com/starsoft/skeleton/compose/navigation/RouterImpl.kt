@@ -331,7 +331,7 @@ class RouterImpl: Router {
         
         when(navigationTarget){
             is Router.MoveBack -> {
-                (navigationTarget.destAsHostMarker?.let { onHostRout ->
+                (navigationTarget.hostMarker?.let { onHostRout ->
                     composeRoutes.getControllerForTarget(onHostRout)
                 } ?: currentRoute?.let {currentRout ->
                     composeRoutes.getControllerForTarget(currentRout)
@@ -346,7 +346,11 @@ class RouterImpl: Router {
                 }
             }
             
-            else ->{
+            is Router.PopUpTo -> {
+                TODO()
+            }
+            
+            else -> {
                 Log.d("test","try move to ${navigationTarget.target} ")
                 composeRoutes.getControllerForTarget(navigationTarget.target)?.apply {
                     navigateInternal(navigationTarget.target, Bundle().also {
@@ -361,6 +365,8 @@ class RouterImpl: Router {
                 }
                 afterNavigate()
             }
+            
+            
         }
     }
     
