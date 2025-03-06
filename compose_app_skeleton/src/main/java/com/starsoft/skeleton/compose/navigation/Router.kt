@@ -59,6 +59,8 @@ interface Router: HostCreator {
     
     interface TargetProperties: Target {
         val targetCreateOptions: TargetCreateOptions? get() = null
+        //TODO
+        val cildTargets: List<Target>? get() = null
         fun isTheSameTarget(other: TargetProperties) = targetKey == other.targetKey
     }
     
