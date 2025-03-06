@@ -11,6 +11,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDeepLink
 import androidx.navigation.NavOptions
 import androidx.navigation.Navigator
+import com.starsoft.skeleton.compose.navigation.DestCreateOptionsContainer.Companion.pack
 import com.starsoft.skeleton.compose.navigation.Router.BackPressBehavior
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.skeleton.compose.util.KeyedData
@@ -19,9 +20,8 @@ import com.starsoft.skeleton.compose.util.KeyedData
 /**
  * Created by Dmitry Starkin on 28.02.2025 16:12.
  */
-data class DestinationPropertiesContainer(
-        override val destination: Class<out Router.ComposeDestination>,
-        override val tag: String = EMPTY_STRING,
+
+data class DestCreateOptionsContainer(
         override val backPressHandleBehavior: BackPressBehavior  =  BackPressBehavior.BySystem,
         override val enterTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? = null,
         override val exitTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? = null,
@@ -32,6 +32,33 @@ data class DestinationPropertiesContainer(
         override val deepLinks: List<NavDeepLink> = emptyList(),
         override val dialogProperties:  DialogProperties? = null,
         override val nestedProperties: Router.NestedProperties? = null
+): Router.DestCreateOptions{
+    companion object{
+        
+        fun Router.DestCreateOptions.pack(): DestCreateOptionsContainer =
+            if(this is DestCreateOptionsContainer){
+                this
+            } else {
+                DestCreateOptionsContainer(
+                    backPressHandleBehavior,
+                    enterTransition,
+                    exitTransition,
+                    popEnterTransition,
+                    popExitTransition,
+                    sizeTransform,
+                    arguments,
+                    deepLinks,
+                    dialogProperties,
+                    nestedProperties
+                )
+            }
+    }
+}
+
+data class DestinationPropertiesContainer(
+        override val destination: Class<out Router.ComposeDestination>,
+        override val tag: String = EMPTY_STRING,
+        override  val destCreateOptions: Router.DestCreateOptions? = null
 ): Router.DestinationProperties
 
 data class NestedPropertiesContainer(
@@ -91,38 +118,32 @@ fun Router.NavigationTarget.addRestoreStateOption(restore : Boolean = true): Sim
         onTargetReached
     )
 
-fun Class<out Router.ComposeDestination>.simpleProperties(tag: String = EMPTY_STRING): Router.DestinationProperties = DestinationPropertiesContainer(this, tag)
+fun Class<out Router.ComposeDestination>.simpleProperties(tag: String = EMPTY_STRING,
+                                                          destCreateOptions: Router.DestCreateOptions? = null): Router.DestinationProperties =
+    DestinationPropertiesContainer(this, tag, destCreateOptions)
 
 fun Router.DestinationProperties.addBackButtonBehavior(behavior: BackPressBehavior): Router.DestinationProperties =
     DestinationPropertiesContainer(
         destination,
         tag,
-        behavior,
-        enterTransition ?: { EnterTransition.None },
-        exitTransition ?: { ExitTransition.None },
-        popEnterTransition ?: { EnterTransition.None },
-        popExitTransition ?: { ExitTransition.None },
-        sizeTransform,
-        arguments,
-        deepLinks,
-        dialogProperties,
-        nestedProperties
+        destCreateOptions?.pack()?.copy(backPressHandleBehavior = behavior) ?: DestCreateOptionsContainer(backPressHandleBehavior = behavior)
     )
 
 fun Router.DestinationProperties.disableDefaultTransitions(): Router.DestinationProperties =
    DestinationPropertiesContainer(
         destination,
         tag,
-        backPressHandleBehavior,
-        enterTransition ?: { EnterTransition.None },
-        exitTransition ?: { ExitTransition.None },
-        popEnterTransition ?: { EnterTransition.None },
-        popExitTransition ?: { ExitTransition.None },
-        sizeTransform,
-        arguments,
-        deepLinks,
-        dialogProperties,
-        nestedProperties
+       destCreateOptions?.pack()?.copy(
+           enterTransition = { EnterTransition.None },
+           exitTransition = { ExitTransition.None },
+           popEnterTransition = { EnterTransition.None },
+           popExitTransition = { ExitTransition.None }
+       ) ?: DestCreateOptionsContainer(
+           enterTransition = { EnterTransition.None },
+           exitTransition = { ExitTransition.None },
+           popEnterTransition = { EnterTransition.None },
+           popExitTransition = { ExitTransition.None }
+       )
     )
 
 private fun NavOptions?.trySetPopUpOption(popUpRout: String? = null, inclusive: Boolean = true, saveData: Boolean = false): NavOptions? =

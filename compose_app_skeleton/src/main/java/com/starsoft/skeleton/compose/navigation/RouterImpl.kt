@@ -201,13 +201,13 @@ class RouterImpl: Router {
                     it.destination.isExtendInterface(ComposeScreen::class.java) ->{
                         composable(
                             route = it.target,
-                            arguments = it.arguments,
-                            deepLinks = it.deepLinks,
-                            enterTransition = it.enterTransition,
-                            exitTransition = it.exitTransition,
-                            popEnterTransition = it.popEnterTransition,
-                            popExitTransition = it.popExitTransition,
-                            sizeTransform = it.sizeTransform
+                            arguments = it.destCreateOptions?.arguments ?: emptyList(),
+                            deepLinks = it.destCreateOptions?.deepLinks ?: emptyList(),
+                            enterTransition = it.destCreateOptions?.enterTransition,
+                            exitTransition = it.destCreateOptions?.exitTransition,
+                            popEnterTransition = it.destCreateOptions?.popEnterTransition ?: it.destCreateOptions?.enterTransition,
+                            popExitTransition = it.destCreateOptions?.popExitTransition ?: it.destCreateOptions?.exitTransition,
+                            sizeTransform = it.destCreateOptions?.sizeTransform
                         
                         ) { entry ->
                             Log.d("test"," ")
@@ -219,9 +219,9 @@ class RouterImpl: Router {
                                     CompositionLocalProvider(localDestinationClass  provides clasIdentifier){
                                         CompositionLocalProvider(localCommonModel  provides commonModel) {
                                             CompositionLocalProvider(localNavController  provides composeRoutes.getControllerForTarget(it.target)) {
-                                            if (it.backPressHandleBehavior == Router.BackPressBehavior.SendToMe) {
+                                            if (it.destCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.SendToMe) {
                                                 BackHandler(onBack = { commonModel?.onBackPressed(it.target) })
-                                            } else if (it.backPressHandleBehavior == Router.BackPressBehavior.Default) {
+                                            } else if (it.destCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.Default) {
                                                 //todo
                                                 BackHandler(onBack = { moveTo(Router.MoveBack()) })
                                             }
@@ -244,18 +244,18 @@ class RouterImpl: Router {
                     it.destination.isExtendInterface(Router.ComposeDialog::class.java) -> {
                         dialog(
                             route = it.target,
-                            arguments = it.arguments,
-                            deepLinks = it.deepLinks,
-                            dialogProperties = it.dialogProperties ?: DialogProperties()
+                            arguments = it.destCreateOptions?.arguments ?: emptyList(),
+                            deepLinks = it.destCreateOptions?.deepLinks ?: emptyList(),
+                            dialogProperties = it.destCreateOptions?.dialogProperties ?: DialogProperties()
                         ) {entry ->
                             it.getInstance(entry.id, LocalLifecycleOwner.current).apply {
                                 CompositionLocalProvider(localScopeIdentifier  provides scopeIdentifier){
                                     CompositionLocalProvider(localDestinationClass  provides clasIdentifier){
                                         CompositionLocalProvider(localCommonModel  provides commonModel){
                                             CompositionLocalProvider(localNavController  provides composeRoutes.getControllerForTarget(it.target)) {
-                                                if (it.backPressHandleBehavior == Router.BackPressBehavior.SendToMe) {
+                                                if (it.destCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.SendToMe) {
                                                     BackHandler(onBack = { commonModel?.onBackPressed(it.target) })
-                                                } else if (it.backPressHandleBehavior == Router.BackPressBehavior.Default) {
+                                                } else if (it.destCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.Default) {
                                                     //todo
                                                     BackHandler(onBack = { moveTo(Router.MoveBack()) })
                                                 }

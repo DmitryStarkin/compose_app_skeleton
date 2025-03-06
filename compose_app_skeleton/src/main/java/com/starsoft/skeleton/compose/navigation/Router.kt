@@ -26,6 +26,12 @@ interface Router: HostCreator {
     
     fun moveTo(navigationTarget: NavigationTarget, data: Bundle? = null)
     
+    interface Target{
+        val destination: Class<*>
+        val tag: String get() = EMPTY_STRING
+        val target: String get() = "${destination.name}$tag"
+    }
+    
     interface NavigationTarget {
         val destination: Class<*>
         val tag: String get() = EMPTY_STRING
@@ -57,6 +63,13 @@ interface Router: HostCreator {
     interface DestinationProperties {
         val destination: Class<out Router.ComposeDestination>
         val tag: String
+        val target: String get() = "${destination.name}$tag"
+        val destCreateOptions: DestCreateOptions? get() = null
+        
+        fun isTheSameTarget(other: DestinationProperties) = target == other.target
+    }
+    
+    interface DestCreateOptions{
         val backPressHandleBehavior: BackPressBehavior get() =  BackPressBehavior.BySystem
         val enterTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? get() = null
         val exitTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? get() = null
@@ -67,10 +80,6 @@ interface Router: HostCreator {
         val deepLinks: List<NavDeepLink> get() = emptyList()
         val dialogProperties:  DialogProperties? get() = null
         val nestedProperties: NestedProperties? get() = null
-        
-        val target: String get() = "${destination.name}$tag"
-        
-        fun isTheSame(other: DestinationProperties) = target == other.target
     }
     
     interface NestedProperties{
