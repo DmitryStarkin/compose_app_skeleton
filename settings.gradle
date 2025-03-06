@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "ComposeSceleton"
 include ':testApp'
 include ':compose_app_skeleton'
+include ':testhiltapp'
