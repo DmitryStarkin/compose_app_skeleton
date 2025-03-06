@@ -44,11 +44,11 @@ class RootActivity : BaseComposeActivity(), Provider<SharedModel>{
         Log.d("test","SetRootUi")
         val controller = rememberNavController()
         commonModel.CreateNavHostHere(
-            controller,
-            listOf(
+            navController = controller,
+            targets = listOf(
                 SplashScreen::class.java,
                 RootScreen::class.java),
-            SplashScreen::class.java
+            startTarget =  SplashScreen::class.java
         )
     }
     

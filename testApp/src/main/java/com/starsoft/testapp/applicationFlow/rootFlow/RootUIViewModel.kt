@@ -13,8 +13,8 @@ import com.starsoft.skeleton.compose.baseViewModel.ExternalEvent
 import com.starsoft.skeleton.compose.baseViewModel.moveToTarget
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.navigation.addPopUpOption
-import com.starsoft.skeleton.compose.navigation.simpleProperties
-import com.starsoft.skeleton.compose.navigation.simpleTarget
+import com.starsoft.skeleton.compose.navigation.asTarget
+import com.starsoft.skeleton.compose.navigation.toNavTarget
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel.Companion.testRootFlowSharedViewModel
 import com.starsoft.testapp.applicationFlow.SharedModel
@@ -37,16 +37,16 @@ sealed interface UiAction{
     data class OnBottomTabButtonClicked(val tab:  BottomTab): UiAction
 }
 
-enum class BottomTab(val destination: Router.DestinationProperties, val icon: ImageVector, val label: String = EMPTY_STRING){
-    FirstTab(FirstPage::class.java.simpleProperties(), Icons.Default.CheckCircle),
-    SecondTab(SecondPage::class.java.simpleProperties(), Icons.Default.CheckCircle),
-    ThirdTab(ThirdPage::class.java.simpleProperties(), Icons.Default.CheckCircle),
-    FourTab(FourPage::class.java.simpleProperties(), Icons.Default.CheckCircle);
-    val target get() = destination.target
+enum class BottomTab(val target: Router.Target, val icon: ImageVector, val label: String = EMPTY_STRING){
+    FirstTab(FirstPage::class.java.asTarget(), Icons.Default.CheckCircle),
+    SecondTab(SecondPage::class.java.asTarget(), Icons.Default.CheckCircle),
+    ThirdTab(ThirdPage::class.java.asTarget(), Icons.Default.CheckCircle),
+    FourTab(FourPage::class.java.asTarget(), Icons.Default.CheckCircle);
+    val targetKey get() = target.targetKey
 }
 
 val targets = BottomTab.entries.map{
-    it.destination.target
+    it.target.targetKey
 }
 
 data class UiState(
@@ -63,7 +63,7 @@ class RootUIViewModel(
             @Composable
         get() = RootUIViewModel(testRootFlowSharedViewModel).also {
                 it._uiState.value =
-                    UiState(BottomTab.FirstTab.target)
+                    UiState(BottomTab.FirstTab.targetKey)
             }
     }
     
@@ -79,7 +79,7 @@ class RootUIViewModel(
     fun onUiAction(action: UiAction){
         when(action){
             is UiAction.OnBottomTabButtonClicked -> {
-                moveToTarget(action.tab.destination.simpleTarget().addPopUpOption(_uiState.value.currentTarget, inclusive = true, saveData = true))
+                moveToTarget(action.tab.target.toNavTarget().addPopUpOption(_uiState.value.currentTarget, inclusive = true, saveData = true))
             }
         }
     }

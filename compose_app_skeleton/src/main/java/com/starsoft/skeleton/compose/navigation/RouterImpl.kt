@@ -70,8 +70,8 @@ class RouterImpl: Router {
                 }
     }
     
-    private val composeRoutes: ArrayList<ComposeNavigationGraphEntry> = ArrayList()
-    private var currentRoute: String? = null
+    private val composeTargets: ArrayList<ComposeNavigationGraphEntry> = ArrayList()
+    private var currentTarget: String? = null
     private var currentEntryId: String? = null
     override var commonModel: CommonModel? = null
     
@@ -91,20 +91,20 @@ class RouterImpl: Router {
         val result = ArrayList<String>()
         forEach {
             it.destinations.forEach{ properties ->
-                result.add(properties.target)
+                result.add(properties.targetKey)
             }
         }
         return result
     }
     
-    private fun List<Router.DestinationProperties>.getTargets(): List<String> =
+    private fun List<Router.TargetProperties>.getTargets(): List<String> =
         map{
-            it.target
+            it.targetKey
         }
     
     private fun  ArrayList<ComposeNavigationGraphEntry>.isContainRoutFrom(entry: ComposeNavigationGraphEntry): Boolean =
         getTargets().containsAnyItemFrom(entry.destinations.map{
-            it.target
+            it.targetKey
         })
     
     private fun  ArrayList<ComposeNavigationGraphEntry>.isContain(entry: ComposeNavigationGraphEntry): Boolean =
@@ -113,12 +113,12 @@ class RouterImpl: Router {
             
         } != null
     
-    private fun List<Router.DestinationProperties>.isTheSame(other: List<Router.DestinationProperties>): Boolean =
+    private fun List<Router.Target>.isTheSame(other: List<Router.Target>): Boolean =
         if(size != other.size){
             false
         } else {
             zip(other).all {
-                it.first.target == it.second.target
+                it.first.targetKey == it.second.targetKey
             }
         }
     
@@ -138,7 +138,7 @@ class RouterImpl: Router {
         } catch (e: IllegalStateException){
             e.printStackTrace()
         }
-        currentRoute = this.currentDestination?.route
+        currentTarget = this.currentDestination?.route
         currentEntryId = this.currentBackStackEntry?.id
     }
     
@@ -146,13 +146,13 @@ class RouterImpl: Router {
      {
         val popped = popBackStack()
          if(popped){
-             currentRoute = this.currentDestination?.route
-             if(currentRoute == emptyDest.destinationName){
+             currentTarget = this.currentDestination?.route
+             if(currentTarget == emptyDest.destinationName){
                  return popBackStackInternal()
              }
          }
          if(!popped){
-             currentRoute = null
+             currentTarget = null
              commonModel?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
          }
          currentEntryId = this.currentBackStackEntry?.id
@@ -162,27 +162,27 @@ class RouterImpl: Router {
     @Composable
     override fun CreateNavHostHere(
             navController: NavHostController,
-            destinations: List<Router.DestinationProperties>,
-            startDest: Router.DestinationProperties?
+            targets: List<Router.TargetProperties>,
+            startTarget: Router.Target?
     ){
-        if(destinations.isEmpty() || (startDest != null && startDest.target !in destinations.getTargets())) return
-        composeRoutes.removeEmpty()
-        val entry = ComposeNavigationGraphEntry(navController, destinations.map { DestinationsHolder(it) })
-        if(composeRoutes.isContain(entry)) return
-        if(composeRoutes.isContainRoutFrom(entry)) throw Exception("Rout already exists in tree use tag for unique")
-        composeRoutes.add(0, entry.also {
+        if(targets.isEmpty() || (startTarget != null && startTarget.targetKey !in targets.getTargets())) return
+        composeTargets.removeEmpty()
+        val entry = ComposeNavigationGraphEntry(navController, targets.map { DestinationsHolder(it) })
+        if(composeTargets.isContain(entry)) return
+        if(composeTargets.isContainRoutFrom(entry)) throw Exception("Rout already exists in tree use tag for unique")
+        composeTargets.add(0, entry.also {
             it.connectToLifecycle(LocalLifecycleOwner.current)
         })
-        CreateNavHost(entry, startDest?.target)
+        CreateNavHost(entry, startTarget?.targetKey)
     }
     
     @Composable
     override fun CreateNavHostHere(
             navController: NavHostController,
-            destinations: ListWrapper<Class<out Router.ComposeDestination>>,
-            startDest: Class<out Router.ComposeDestination>?
+            targets: ListWrapper<Class<out Router.ComposeDestination>>,
+            startTarget: Class<out Router.ComposeDestination>?
     ){
-        CreateNavHostHere( navController, destinations.map { it.simpleProperties() }, startDest?.simpleProperties())
+        CreateNavHostHere( navController, targets.map { it.asTargetProperties() }, startTarget?.asTarget())
     }
     
     @Composable
@@ -190,7 +190,7 @@ class RouterImpl: Router {
             entry: ComposeNavigationGraphEntry,
             startDest: String? = null
     ){
-        NavHost(entry.controller!!, startDestination = startDest?.let { if(it in entry.destinations.map{it.target}){it} else {emptyDest.destinationName} } ?: emptyDest.destinationName) {
+        NavHost(entry.controller!!, startDestination = startDest?.let { if(it in entry.destinations.map{it.targetKey}){it} else {emptyDest.destinationName} } ?: emptyDest.destinationName) {
             if( startDest == null){
                 composable(route = emptyDest.destinationName) { entry ->
                     emptyDest.content(entry,  null)
@@ -198,16 +198,16 @@ class RouterImpl: Router {
             }
             entry.destinations.forEach {
                 when{
-                    it.destination.isExtendInterface(ComposeScreen::class.java) ->{
+                    it.destination.isExtendInterface(ComposeScreen::class.java) -> {
                         composable(
-                            route = it.target,
-                            arguments = it.destCreateOptions?.arguments ?: emptyList(),
-                            deepLinks = it.destCreateOptions?.deepLinks ?: emptyList(),
-                            enterTransition = it.destCreateOptions?.enterTransition,
-                            exitTransition = it.destCreateOptions?.exitTransition,
-                            popEnterTransition = it.destCreateOptions?.popEnterTransition ?: it.destCreateOptions?.enterTransition,
-                            popExitTransition = it.destCreateOptions?.popExitTransition ?: it.destCreateOptions?.exitTransition,
-                            sizeTransform = it.destCreateOptions?.sizeTransform
+                            route = it.targetKey,
+                            arguments = it.targetCreateOptions?.arguments ?: emptyList(),
+                            deepLinks = it.targetCreateOptions?.deepLinks ?: emptyList(),
+                            enterTransition = it.targetCreateOptions?.enterTransition,
+                            exitTransition = it.targetCreateOptions?.exitTransition,
+                            popEnterTransition = it.targetCreateOptions?.popEnterTransition ?: it.targetCreateOptions?.enterTransition,
+                            popExitTransition = it.targetCreateOptions?.popExitTransition ?: it.targetCreateOptions?.exitTransition,
+                            sizeTransform = it.targetCreateOptions?.sizeTransform
                         
                         ) { entry ->
                             Log.d("test"," ")
@@ -218,18 +218,18 @@ class RouterImpl: Router {
                                 CompositionLocalProvider(localScopeIdentifier  provides scopeIdentifier){
                                     CompositionLocalProvider(localDestinationClass  provides clasIdentifier){
                                         CompositionLocalProvider(localCommonModel  provides commonModel) {
-                                            CompositionLocalProvider(localNavController  provides composeRoutes.getControllerForTarget(it.target)) {
-                                            if (it.destCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.SendToMe) {
-                                                BackHandler(onBack = { commonModel?.onBackPressed(it.target) })
-                                            } else if (it.destCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.Default) {
+                                            CompositionLocalProvider(localNavController  provides composeTargets.getControllerForTarget(it.targetKey)) {
+                                            if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.SendToMe) {
+                                                BackHandler(onBack = { commonModel?.onBackPressed(it.targetKey) })
+                                            } else if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.Default) {
                                                 //todo
                                                 BackHandler(onBack = { moveTo(Router.MoveBack()) })
                                             }
                                             //TODO maybe crutch
-                                            if (composeRoutes.updateCurrentIdForDestination(it.target, entry.id) == null) {
+                                            if (composeTargets.updateCurrentIdForDestination(it.targetKey, entry.id) == null) {
                                                 Log.d("test", "send navigation in compose")
                                                 commonModel?.apply {
-                                                    putNavigateEvent(NavigationEvent.NavigateSusses(it.target ?: EMPTY_STRING))
+                                                    putNavigateEvent(NavigationEvent.NavigateSusses(it.targetKey ?: EMPTY_STRING))
                                                 }
                                             }
                                             content(entry, entry.arguments?.getBundle("$ARG${it.destination.name}"))
@@ -243,27 +243,27 @@ class RouterImpl: Router {
                     
                     it.destination.isExtendInterface(Router.ComposeDialog::class.java) -> {
                         dialog(
-                            route = it.target,
-                            arguments = it.destCreateOptions?.arguments ?: emptyList(),
-                            deepLinks = it.destCreateOptions?.deepLinks ?: emptyList(),
-                            dialogProperties = it.destCreateOptions?.dialogProperties ?: DialogProperties()
+                            route = it.targetKey,
+                            arguments = it.targetCreateOptions?.arguments ?: emptyList(),
+                            deepLinks = it.targetCreateOptions?.deepLinks ?: emptyList(),
+                            dialogProperties = it.targetCreateOptions?.dialogProperties ?: DialogProperties()
                         ) {entry ->
                             it.getInstance(entry.id, LocalLifecycleOwner.current).apply {
                                 CompositionLocalProvider(localScopeIdentifier  provides scopeIdentifier){
                                     CompositionLocalProvider(localDestinationClass  provides clasIdentifier){
                                         CompositionLocalProvider(localCommonModel  provides commonModel){
-                                            CompositionLocalProvider(localNavController  provides composeRoutes.getControllerForTarget(it.target)) {
-                                                if (it.destCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.SendToMe) {
-                                                    BackHandler(onBack = { commonModel?.onBackPressed(it.target) })
-                                                } else if (it.destCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.Default) {
+                                            CompositionLocalProvider(localNavController  provides composeTargets.getControllerForTarget(it.targetKey)) {
+                                                if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.SendToMe) {
+                                                    BackHandler(onBack = { commonModel?.onBackPressed(it.targetKey) })
+                                                } else if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.Default) {
                                                     //todo
                                                     BackHandler(onBack = { moveTo(Router.MoveBack()) })
                                                 }
                                                 //TODO maybe crutch
-                                                if (composeRoutes.updateCurrentIdForDestination(it.target, entry.id) == null) {
+                                                if (composeTargets.updateCurrentIdForDestination(it.targetKey, entry.id) == null) {
                                                     Log.d("test", "send navigation in compose")
                                                     commonModel?.apply {
-                                                        putNavigateEvent(NavigationEvent.NavigateSusses(it.target ?: EMPTY_STRING))
+                                                        putNavigateEvent(NavigationEvent.NavigateSusses(it.targetKey ?: EMPTY_STRING))
                                                     }
                                                 }
                                                 content(entry, entry.arguments?.getBundle("$ARG${it.destination.name}"))
@@ -296,7 +296,7 @@ class RouterImpl: Router {
     
     override fun moveTo(navigationTarget: Router.NavigationTarget, data: Bundle?){
         Log.d("test","move to ${navigationTarget} ")
-        Log.d("test","current route ${currentRoute} ")
+        Log.d("test","current route ${currentTarget} ")
         if(navigationTarget is Router.NavigationTarget.NavigationTargetStub) {
             return
         }
@@ -321,10 +321,10 @@ class RouterImpl: Router {
                     }
                 }
                 navigationTarget.onTargetReached?.apply {
-                    invoke(currentRoute ?: EMPTY_STRING)
+                    invoke(currentTarget ?: EMPTY_STRING)
                 }
                 commonModel?.apply {
-                        putNavigateEvent(NavigationEvent.NavigateSusses(currentRoute ?: EMPTY_STRING))
+                        putNavigateEvent(NavigationEvent.NavigateSusses(currentTarget ?: EMPTY_STRING))
                 }
             }
         }
@@ -332,9 +332,9 @@ class RouterImpl: Router {
         when(navigationTarget){
             is Router.MoveBack -> {
                 (navigationTarget.hostMarker?.let { onHostRout ->
-                    composeRoutes.getControllerForTarget(onHostRout)
-                } ?: currentRoute?.let {currentRout ->
-                    composeRoutes.getControllerForTarget(currentRout)
+                    composeTargets.getControllerForTarget(onHostRout)
+                } ?: currentTarget?.let { currentRout ->
+                    composeTargets.getControllerForTarget(currentRout)
                 })?.apply {
                     Log.d("test","try popBackStack with ${this.hashCode()} ")
                     popBackStackInternal()
@@ -351,22 +351,20 @@ class RouterImpl: Router {
             }
             
             else -> {
-                Log.d("test","try move to ${navigationTarget.target} ")
-                composeRoutes.getControllerForTarget(navigationTarget.target)?.apply {
-                    navigateInternal(navigationTarget.target, Bundle().also {
-                                                                    it.putBundle("$ARG${navigationTarget.target}", unionData)
+                Log.d("test","try move to ${navigationTarget.targetKey} ")
+                composeTargets.getControllerForTarget(navigationTarget.targetKey)?.apply {
+                    navigateInternal(navigationTarget.targetKey, Bundle().also {
+                                                                    it.putBundle("$ARG${navigationTarget.targetKey}", unionData)
                                                                     //it.addTargetReachedFunction(rout.onTargetReached)
                                                                 }, navigationTarget.options, navigationTarget.extras)
                     logSuses()
                     logStack("after navigation")
                 } ?: run{
                     commonModel?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
-                    Exception("null controller in navigate").printStackTrace()
+                    Exception("controller for target not found").printStackTrace()
                 }
                 afterNavigate()
             }
-            
-            
         }
     }
     
@@ -377,7 +375,7 @@ class RouterImpl: Router {
                 fun List<ComposeNavigationGraphEntry>.getControllerForTarget(target: String): NavHostController? =
                     find {
                         target in it.destinations.map { destination ->
-                            destination.target
+                            destination.targetKey
                         }
                     }?.controller?.also {
                         //TODO
@@ -387,14 +385,14 @@ class RouterImpl: Router {
                 fun List<ComposeNavigationGraphEntry>.isHasDestination(target: String): Boolean =
                     find {
                         target in it.destinations.map { destination ->
-                            destination.target
+                            destination.targetKey
                         }
                     }?.let{true} ?: false
                 
                 fun List<ComposeNavigationGraphEntry>.updateCurrentIdForDestination(target: String, id: String): String? =
                     find {
                         target in it.destinations.map { destination ->
-                            destination.target
+                            destination.targetKey
                         }
                     }?.let {
                         val current = it.currentEntryId
@@ -410,8 +408,8 @@ class RouterImpl: Router {
     }
     
     private data class DestinationsHolder(
-        val properties: Router.DestinationProperties
-    ): Router.DestinationProperties by properties{
+        val targets: Router.TargetProperties
+    ): Router.TargetProperties by targets{
         
         private val instances: ArrayList<DestinationInstanceHolder> = ArrayList()
         
@@ -432,7 +430,7 @@ class RouterImpl: Router {
             return instances.find {
                 it.id == id && it.destinationInstance != null
             }?.destinationInstance ?: run{
-                DestinationInstanceHolder(properties, id).let {
+                DestinationInstanceHolder(targets, id).let {
                     it.connectToLifecycle(owner)
                     instances.add(it)
                     it.destinationInstance!!
@@ -441,19 +439,27 @@ class RouterImpl: Router {
         }
     }
     
-    private  class DestinationInstanceHolder(properties: Router.DestinationProperties, val id: String): LifecycleSupport{
+    private  class DestinationInstanceHolder(properties: Router.Target, val id: String): LifecycleSupport {
         val destinationInstance get() = _destinationInstance
         
         private var _destinationInstance: Router.ComposeDestination? =
             
             try {
-                properties.destination.getDeclaredConstructor().newInstance().apply {
-                    _destinationInstance = this
+                properties.destination.getDeclaredConstructor().newInstance()?.let {
+                    if(it is Router.ComposeDestination){
+                        it
+                    } else {
+                        throw Exception("Must be Router.ComposeDestination")
+                    }
                 }
             } catch (e: IllegalAccessException){
                 e.printStackTrace()
-                properties.destination.kotlin.objectInstance?.apply {
-                    _destinationInstance = this
+                properties.destination.kotlin.objectInstance?.let {
+                    if(it is Router.ComposeDestination){
+                        it
+                    } else {
+                        throw Exception("Must be Router.ComposeDestination")
+                    }
                 } ?: run{ throw Exception("Unknown create instance error")}
             }
         

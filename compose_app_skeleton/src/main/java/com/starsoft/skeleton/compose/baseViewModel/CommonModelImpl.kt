@@ -81,6 +81,5 @@ class CommonModelImpl(override val errorHandler: ErrorHandler, private val route
         viewModelScope.launch {
             _navigationEventFlow.emit(event)
         }
-        
     }
 }

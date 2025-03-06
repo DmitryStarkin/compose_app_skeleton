@@ -20,7 +20,7 @@ import com.starsoft.skeleton.compose.baseui.Counter
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.navigation.addPopUpOption
 import com.starsoft.skeleton.compose.navigation.localCommonModel
-import com.starsoft.skeleton.compose.navigation.simpleTarget
+import com.starsoft.skeleton.compose.navigation.toNavTarget
 import com.starsoft.testapp.R
 import com.starsoft.testapp.applicationFlow.rootFlow.RootScreen
 
@@ -72,10 +72,10 @@ fun SplashPageUi(
                 onEnd = {
                     viewModel?.moveToTarget(
                         RootScreen::class.java
-                            .simpleTarget()
+                            .toNavTarget()
                             .addPopUpOption(
                                 SplashScreen::class.java
-                                    .simpleTarget(),
+                                    .toNavTarget(),
                                     inclusive = true,
                                     saveData = false))
                 }

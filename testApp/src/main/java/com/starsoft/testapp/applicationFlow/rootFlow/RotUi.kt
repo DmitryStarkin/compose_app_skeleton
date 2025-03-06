@@ -24,12 +24,12 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.rememberNavController
-import com.starsoft.skeleton.compose.baseui.CircularProgressSpinner
 import com.starsoft.skeleton.compose.navigation.listOf
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.navigation.addBackButtonBehavior
+import com.starsoft.skeleton.compose.navigation.asTarget
 import com.starsoft.skeleton.compose.navigation.localScopeIdentifier
-import com.starsoft.skeleton.compose.navigation.simpleProperties
+import com.starsoft.skeleton.compose.navigation.asTargetProperties
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.testapp.R
 import com.starsoft.testapp.applicationFlow.rootFlow.RootUIViewModel.Companion.testRootUIViewModel
@@ -110,13 +110,15 @@ fun RootUi(
             color = colorResource(R.color.white)
         ) {
             val navController = rememberNavController()
-            viewModel.CreateNavHostHere(navController, listOf(
-                FirstPage::class.java.simpleProperties().addBackButtonBehavior(Router.BackPressBehavior.Default),
-                SecondPage::class.java.simpleProperties().addBackButtonBehavior(Router.BackPressBehavior.Default),
-                ThirdPage::class.java.simpleProperties().addBackButtonBehavior(Router.BackPressBehavior.Default),
-                FourPage::class.java.simpleProperties().addBackButtonBehavior(Router.BackPressBehavior.Default)
-            ), FirstPage::class.java.simpleProperties() )
-            //viewModel.onUiAction(UiAction.OnBottomTabButtonClicked(BottomTab.FirstTab))
+            viewModel.CreateNavHostHere(
+                navController = navController,
+                targets = listOf(
+                FirstPage::class.java.asTargetProperties().addBackButtonBehavior(Router.BackPressBehavior.Default),
+                SecondPage::class.java.asTargetProperties().addBackButtonBehavior(Router.BackPressBehavior.Default),
+                ThirdPage::class.java.asTargetProperties().addBackButtonBehavior(Router.BackPressBehavior.Default),
+                FourPage::class.java.asTargetProperties().addBackButtonBehavior(Router.BackPressBehavior.Default)
+            ),
+                startTarget = FirstPage::class.java.asTarget() )
         }
     }
 }
@@ -132,12 +134,12 @@ fun BottomNavBar(
         BottomTab.entries.forEach {
         NavigationBarItem(
             modifier = modifier.wrapContentHeight(),
-            selected = it.target == currentTarget,
+            selected = it.targetKey == currentTarget,
             onClick = {
                 viewModel.onUiAction(UiAction.OnBottomTabButtonClicked(it))
             },
             icon = { Icon(it.icon, it.label) },
-            //label = {it.label}
+              label = {it.label}
             )
         }
     }

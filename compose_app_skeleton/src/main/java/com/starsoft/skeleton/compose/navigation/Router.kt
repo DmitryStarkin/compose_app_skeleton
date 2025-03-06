@@ -25,19 +25,16 @@ interface Router: HostCreator {
     var commonModel: CommonModel?
     
     fun moveTo(navigationTarget: NavigationTarget, data: Bundle? = null)
-    
+  
     interface Target{
         val destination: Class<*>
         val tag: String get() = EMPTY_STRING
-        val target: String get() = "${destination.name}$tag"
+        val targetKey: String get() = "${destination.name}$tag"
     }
     
-    interface NavigationTarget {
-        val destination: Class<*>
-        val tag: String get() = EMPTY_STRING
+    interface NavigationTarget : Target{
         val options: NavOptions? get() = null
         val extras: Navigator. Extras? get() = null
-        val target: String get() = "${destination.name}$tag"
         val data: Bundle? get() = null
         
         val onTargetReached: ((String) -> Unit)? get() = null
@@ -60,16 +57,12 @@ interface Router: HostCreator {
         }
     }
     
-    interface DestinationProperties {
-        val destination: Class<out Router.ComposeDestination>
-        val tag: String
-        val target: String get() = "${destination.name}$tag"
-        val destCreateOptions: DestCreateOptions? get() = null
-        
-        fun isTheSameTarget(other: DestinationProperties) = target == other.target
+    interface TargetProperties: Target {
+        val targetCreateOptions: TargetCreateOptions? get() = null
+        fun isTheSameTarget(other: TargetProperties) = targetKey == other.targetKey
     }
     
-    interface DestCreateOptions{
+    interface TargetCreateOptions{
         val backPressHandleBehavior: BackPressBehavior get() =  BackPressBehavior.BySystem
         val enterTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? get() = null
         val exitTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? get() = null
@@ -83,8 +76,8 @@ interface Router: HostCreator {
     }
     
     interface NestedProperties{
-        val destinations: List<Router.DestinationProperties>
-        val startDest: Router.DestinationProperties? get() =  null
+        val destinations: List<Router.TargetProperties>
+        val startDest: Router.TargetProperties? get() =  null
     }
     
     interface ComposeScreen: ComposeDestination
@@ -117,7 +110,7 @@ interface Router: HostCreator {
         override val content: @Composable (NavBackStackEntry, Bundle?) -> Unit = { _, _ ->}
     }
     
-    data class PopUpTo(val where: DestinationProperties,
+    data class PopUpTo(val where: TargetProperties,
                        override val data: Bundle?,
                        val inclusive: Boolean = true,
                        val saveData: Boolean = true): NavigationTarget, ComposeDestination {

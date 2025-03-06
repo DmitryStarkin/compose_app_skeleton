@@ -1,6 +1,7 @@
 package com.starsoft.skeleton.compose.navigation
 
 import android.os.Bundle
+import android.os.Parcelable
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -11,17 +12,41 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDeepLink
 import androidx.navigation.NavOptions
 import androidx.navigation.Navigator
-import com.starsoft.skeleton.compose.navigation.DestCreateOptionsContainer.Companion.pack
+import com.starsoft.skeleton.compose.navigation.TargetCreateOptionsContainer.Companion.pack
 import com.starsoft.skeleton.compose.navigation.Router.BackPressBehavior
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.skeleton.compose.util.KeyedData
+import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.RawValue
 
 
 /**
  * Created by Dmitry Starkin on 28.02.2025 16:12.
  */
+@Parcelize
+data class TargetContainer(
+        override val destination: Class<*>,
+        override val tag: String = EMPTY_STRING
+): Router.Target, Parcelable {
+    
+    fun Router.Target.pack(): TargetContainer =
+        if(this is TargetContainer){
+            this
+        } else {
+            TargetContainer(
+                destination,
+                tag
+            )
+        }
+}
 
-data class DestCreateOptionsContainer(
+val Router.TargetProperties.target : Router.Target get() =
+        TargetContainer(
+            destination,
+            tag
+        )
+
+data class TargetCreateOptionsContainer(
         override val backPressHandleBehavior: BackPressBehavior  =  BackPressBehavior.BySystem,
         override val enterTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? = null,
         override val exitTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? = null,
@@ -32,14 +57,14 @@ data class DestCreateOptionsContainer(
         override val deepLinks: List<NavDeepLink> = emptyList(),
         override val dialogProperties:  DialogProperties? = null,
         override val nestedProperties: Router.NestedProperties? = null
-): Router.DestCreateOptions{
+): Router.TargetCreateOptions{
     companion object{
         
-        fun Router.DestCreateOptions.pack(): DestCreateOptionsContainer =
-            if(this is DestCreateOptionsContainer){
+        fun Router.TargetCreateOptions.pack(): TargetCreateOptionsContainer =
+            if(this is TargetCreateOptionsContainer){
                 this
             } else {
-                DestCreateOptionsContainer(
+                TargetCreateOptionsContainer(
                     backPressHandleBehavior,
                     enterTransition,
                     exitTransition,
@@ -55,51 +80,67 @@ data class DestCreateOptionsContainer(
     }
 }
 
-data class DestinationPropertiesContainer(
-        override val destination: Class<out Router.ComposeDestination>,
+data class TargetPropertiesContainer(
+        override val destination: Class<*>,
         override val tag: String = EMPTY_STRING,
-        override  val destCreateOptions: Router.DestCreateOptions? = null
-): Router.DestinationProperties
+        override  val targetCreateOptions: Router.TargetCreateOptions? = null
+): Router.TargetProperties
 
 data class NestedPropertiesContainer(
-        val destinations: List<Router.DestinationProperties>,
-        val startDest: Router.DestinationProperties? = null)
+        val destinations: List<Router.TargetProperties>,
+        val startDest: Router.TargetProperties? = null)
 
-data class SimpleNavigationTarget(override val destination: Class<*>,
-                                  override val tag: String = EMPTY_STRING,
-                                  override val options: NavOptions?  = null,
-                                  override val extras: Navigator. Extras?  = null,
-                                  override val data: Bundle? = null,
-                                  override val onTargetReached: ((String) -> Unit)? = null
-): Router.NavigationTarget
+@Parcelize
+data class NavigationTargetContainer(override val destination: Class<*>,
+                                     override val tag: String = EMPTY_STRING,
+                                     override val options: @RawValue NavOptions?  = null,
+                                     override val extras: @RawValue Navigator. Extras?  = null,
+                                     override val data: Bundle? = null,
+                                     override val onTargetReached: ((String) -> Unit)? = null
+): Router.NavigationTarget, Parcelable{
+    companion object{
+        fun Router.NavigationTarget.pack(): NavigationTargetContainer = if(this is NavigationTargetContainer){
+            this
+        } else {
+            NavigationTargetContainer(
+                destination,
+                tag,
+                options,
+                extras,
+                data,
+                onTargetReached
+            )
+        }
+    }
+}
 
-fun Router.DestinationProperties.simpleTarget(data: Bundle? = null, onTargetReached: ((String) -> Unit)? = null) =
-    SimpleNavigationTarget(destination, tag, data = data, onTargetReached = onTargetReached)
+fun Router.Target.toNavTarget(data: Bundle? = null, onTargetReached: ((String) -> Unit)? = null) =
+    NavigationTargetContainer(destination, tag, data = data, onTargetReached = onTargetReached)
 
-fun Class<*>.simpleTarget(tag: String = EMPTY_STRING, data: Bundle? = null, onTargetReached: ((String) -> Unit)? = null): Router.NavigationTarget =
-    SimpleNavigationTarget(this@simpleTarget, tag, data = data, onTargetReached = onTargetReached)
+fun Class<*>.toNavTarget(tag: String = EMPTY_STRING, data: Bundle? = null, onTargetReached: ((String) -> Unit)? = null): Router.NavigationTarget =
+    NavigationTargetContainer(this@toNavTarget, tag, data = data, onTargetReached = onTargetReached)
 
 fun Class<out Router.ComposeDestination>.moveBackTarget(data: KeyedData? = null, tag: String = EMPTY_STRING): Router.MoveBack =
-    Router.MoveBack(data, simpleProperties(tag).target)
+    Router.MoveBack(data, asTargetProperties(tag).targetKey)
 
-fun Router.NavigationTarget.addPopUpOption(properties: Router.DestinationProperties? = null, inclusive: Boolean = true, saveData: Boolean = false) =
-    addPopUpOption(properties?.target, inclusive, saveData)
+fun Router.NavigationTarget.addPopUpOption(properties: Router.TargetProperties? = null, inclusive: Boolean = true, saveData: Boolean = false) =
+    addPopUpOption(properties?.targetKey, inclusive, saveData)
 
-fun Router.NavigationTarget.addPopUpOption(navigationTarget: Router.NavigationTarget? = null, inclusive: Boolean = true, saveData: Boolean = false): SimpleNavigationTarget =
-    addPopUpOption(navigationTarget?.target, inclusive,saveData)
+fun Router.NavigationTarget.addPopUpOption(navigationTarget: Router.NavigationTarget? = null, inclusive: Boolean = true, saveData: Boolean = false): NavigationTargetContainer =
+    addPopUpOption(navigationTarget?.targetKey, inclusive,saveData)
 
-fun Router.NavigationTarget.addPopUpOption(popUpRout: String? = null, inclusive: Boolean = true, saveData: Boolean = false): SimpleNavigationTarget =
-    SimpleNavigationTarget(
+fun Router.NavigationTarget.addPopUpOption(popUpRout: String? = null, inclusive: Boolean = true, saveData: Boolean = false): NavigationTargetContainer =
+    NavigationTargetContainer(
         destination,
         tag,
-        options.trySetPopUpOption(popUpRout ?: target, inclusive, saveData),
+        options.trySetPopUpOption(popUpRout ?: targetKey, inclusive, saveData),
         extras,
         data,
         onTargetReached
     )
 
-fun Router.NavigationTarget.addSingleTopOption(singleTop : Boolean = true): SimpleNavigationTarget =
-    SimpleNavigationTarget(
+fun Router.NavigationTarget.addSingleTopOption(singleTop : Boolean = true): NavigationTargetContainer =
+    NavigationTargetContainer(
         destination,
         tag,
         options.trySetSingleTop(singleTop),
@@ -108,8 +149,8 @@ fun Router.NavigationTarget.addSingleTopOption(singleTop : Boolean = true): Simp
         onTargetReached
     )
 
-fun Router.NavigationTarget.addRestoreStateOption(restore : Boolean = true): SimpleNavigationTarget =
-    SimpleNavigationTarget(
+fun Router.NavigationTarget.addRestoreStateOption(restore : Boolean = true): NavigationTargetContainer =
+    NavigationTargetContainer(
         destination,
         tag,
         options.trySetRestoreState(restore),
@@ -118,27 +159,30 @@ fun Router.NavigationTarget.addRestoreStateOption(restore : Boolean = true): Sim
         onTargetReached
     )
 
-fun Class<out Router.ComposeDestination>.simpleProperties(tag: String = EMPTY_STRING,
-                                                          destCreateOptions: Router.DestCreateOptions? = null): Router.DestinationProperties =
-    DestinationPropertiesContainer(this, tag, destCreateOptions)
+fun Class<out Router.ComposeDestination>.asTargetProperties(tag: String = EMPTY_STRING,
+                                                            targetCreateOptions: Router.TargetCreateOptions? = null): Router.TargetProperties =
+    TargetPropertiesContainer(this, tag, targetCreateOptions)
 
-fun Router.DestinationProperties.addBackButtonBehavior(behavior: BackPressBehavior): Router.DestinationProperties =
-    DestinationPropertiesContainer(
+fun Class<out Router.ComposeDestination>.asTarget(tag: String = EMPTY_STRING): Router.Target =
+    TargetContainer(this)
+
+fun Router.TargetProperties.addBackButtonBehavior(behavior: BackPressBehavior): Router.TargetProperties =
+    TargetPropertiesContainer(
         destination,
         tag,
-        destCreateOptions?.pack()?.copy(backPressHandleBehavior = behavior) ?: DestCreateOptionsContainer(backPressHandleBehavior = behavior)
+        targetCreateOptions?.pack()?.copy(backPressHandleBehavior = behavior) ?: TargetCreateOptionsContainer(backPressHandleBehavior = behavior)
     )
 
-fun Router.DestinationProperties.disableDefaultTransitions(): Router.DestinationProperties =
-   DestinationPropertiesContainer(
-        destination,
-        tag,
-       destCreateOptions?.pack()?.copy(
+fun Router.TargetProperties.disableDefaultTransitions(): Router.TargetProperties =
+   TargetPropertiesContainer(
+       destination,
+       tag,
+       targetCreateOptions?.pack()?.copy(
            enterTransition = { EnterTransition.None },
            exitTransition = { ExitTransition.None },
            popEnterTransition = { EnterTransition.None },
            popExitTransition = { ExitTransition.None }
-       ) ?: DestCreateOptionsContainer(
+       ) ?: TargetCreateOptionsContainer(
            enterTransition = { EnterTransition.None },
            exitTransition = { ExitTransition.None },
            popEnterTransition = { EnterTransition.None },
