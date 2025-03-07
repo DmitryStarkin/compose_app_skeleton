@@ -9,6 +9,7 @@ import com.starsoft.skeleton.compose.util.KeyboardState
 import com.starsoft.skeleton.compose.util.KeyedData
 import kotlinx.coroutines.flow.SharedFlow
 
+
 /**
  * Created by Dmitry Starkin on 26.02.2025 15:17.
  *
@@ -76,6 +77,8 @@ interface CommonModel: HostCreator {
     fun onBackPressed(target: String)
     
     fun putNavigateEvent(event: NavigationEvent)
+    
+    fun clean()
 }
 
 interface CommonModelOwner{
