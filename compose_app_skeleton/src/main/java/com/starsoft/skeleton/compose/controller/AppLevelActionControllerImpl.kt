@@ -1,9 +1,9 @@
-package com.starsoft.skeleton.compose.baseViewModel
+package com.starsoft.skeleton.compose.controller
 
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import com.starsoft.skeleton.compose.baseViewModel.ActivityLevelAction.ErrorMessageAction.Companion.obtainErrorMessageAction
+import com.starsoft.skeleton.compose.controller.ActivityLevelAction.ErrorMessageAction.Companion.obtainErrorMessageAction
 import com.starsoft.skeleton.compose.navigation.HostCreator
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.navigation.RouterImpl
@@ -20,13 +20,12 @@ import org.jetbrains.annotations.MustBeInvokedByOverriders
 /**
  * Created by Dmitry Starkin on 26.02.2025 15:29.
  */
-open class CommonModelImpl(override val errorHandler: ErrorHandler, private val router: Router): CommonModel,
+open class AppLevelActionControllerImpl(override val errorHandler: ErrorHandler, private val router: Router): AppLevelActionController,
     HostCreator by router{
     
     companion object{
-        val testCommonViewModel: CommonModel @Composable get() = CommonModelImpl(ErrorHandler(LocalContext.current), RouterImpl())
+        val testAppLevelActionController: AppLevelActionController @Composable get() = AppLevelActionControllerImpl(ErrorHandler(LocalContext.current), RouterImpl())
     }
-    
     
     private val scope = MainScope()
     
@@ -42,7 +41,7 @@ open class CommonModelImpl(override val errorHandler: ErrorHandler, private val 
     override var currentKeyboardState: KeyboardState = KeyboardState.Hidden
     
     init {
-        router.commonModel = this
+        router.appLevelActionController = this
         initErrorObserver()
     }
     

@@ -12,7 +12,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDeepLink
 import androidx.navigation.NavOptions
 import androidx.navigation.Navigator
-import com.starsoft.skeleton.compose.baseViewModel.CommonModel
+import com.starsoft.skeleton.compose.controller.AppLevelActionController
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.skeleton.compose.util.KeyedData
 import com.starsoft.skeleton.compose.util.LifecycleSupport
@@ -22,7 +22,7 @@ import com.starsoft.skeleton.compose.util.LifecycleSupport
  */
 interface Router: HostCreator {
     
-    var commonModel: CommonModel?
+    var appLevelActionController: AppLevelActionController?
     
     fun moveTo(navigationTarget: NavigationTarget, data: Bundle? = null)
   

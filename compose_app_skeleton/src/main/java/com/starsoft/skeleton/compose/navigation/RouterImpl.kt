@@ -19,9 +19,9 @@ import androidx.navigation.Navigator
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
-import com.starsoft.skeleton.compose.baseViewModel.ActivityLevelAction.NavigationAction.Companion.obtainNavigationAction
-import com.starsoft.skeleton.compose.baseViewModel.NavigationEvent
-import com.starsoft.skeleton.compose.baseViewModel.CommonModel
+import com.starsoft.skeleton.compose.controller.ActivityLevelAction.NavigationAction.Companion.obtainNavigationAction
+import com.starsoft.skeleton.compose.controller.NavigationEvent
+import com.starsoft.skeleton.compose.controller.AppLevelActionController
 import com.starsoft.skeleton.compose.navigation.Router.ComposeDestination
 import com.starsoft.skeleton.compose.navigation.Router.ComposeScreen
 import com.starsoft.skeleton.compose.navigation.RouterImpl.ComposeNavigationGraphEntry.Companion.getControllerForTarget
@@ -38,7 +38,7 @@ import kotlin.reflect.KClass
  * Created by Dmitry Starkin on 26.02.2025 14:49.
  */
 val  localScopeIdentifier = compositionLocalOf { EMPTY_STRING }
-val  localCommonModel = compositionLocalOf<CommonModel?> { error("not init") }
+val  localAppLevelActionController = compositionLocalOf<AppLevelActionController?> { error("not init") }
 val  localDestinationClass = compositionLocalOf<KClass<*>> { Router.ComposeDestination::class }
 val  localNavController = compositionLocalOf<NavController?> { error("not init") }
 
@@ -73,7 +73,7 @@ class RouterImpl: Router {
     private val composeTargets: ArrayList<ComposeNavigationGraphEntry> = ArrayList()
     private var currentTarget: String? = null
     private var currentEntryId: String? = null
-    override var commonModel: CommonModel? = null
+    override var appLevelActionController: AppLevelActionController? = null
     
     private fun  ArrayList<ComposeNavigationGraphEntry>.removeEmpty() {
         val new = this.mapNotNull {
@@ -153,7 +153,7 @@ class RouterImpl: Router {
          }
          if(!popped){
              currentTarget = null
-             commonModel?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
+             appLevelActionController?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
          }
          currentEntryId = this.currentBackStackEntry?.id
         return popped
@@ -217,10 +217,10 @@ class RouterImpl: Router {
                                 Log.d("test","${it.destination.simpleName} get instanse ${this.hashCode()} Lifecycle ${LocalLifecycleOwner.current.hashCode()}")
                                 CompositionLocalProvider(localScopeIdentifier  provides scopeIdentifier){
                                     CompositionLocalProvider(localDestinationClass  provides clasIdentifier){
-                                        CompositionLocalProvider(localCommonModel  provides commonModel) {
+                                        CompositionLocalProvider(localAppLevelActionController  provides appLevelActionController) {
                                             CompositionLocalProvider(localNavController  provides composeTargets.getControllerForTarget(it.targetKey)) {
                                             if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.SendToMe) {
-                                                BackHandler(onBack = { commonModel?.onBackPressed(it.targetKey) })
+                                                BackHandler(onBack = { appLevelActionController?.onBackPressed(it.targetKey) })
                                             } else if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.Default) {
                                                 //todo
                                                 BackHandler(onBack = { moveTo(Router.MoveBack()) })
@@ -228,7 +228,7 @@ class RouterImpl: Router {
                                             //TODO maybe crutch
                                             if (composeTargets.updateCurrentIdForDestination(it.targetKey, entry.id) == null) {
                                                 Log.d("test", "send navigation in compose")
-                                                commonModel?.apply {
+                                                appLevelActionController?.apply {
                                                     putNavigateEvent(NavigationEvent.NavigateSusses(it.targetKey ?: EMPTY_STRING))
                                                 }
                                             }
@@ -251,10 +251,10 @@ class RouterImpl: Router {
                             it.getInstance(entry.id, LocalLifecycleOwner.current).apply {
                                 CompositionLocalProvider(localScopeIdentifier  provides scopeIdentifier){
                                     CompositionLocalProvider(localDestinationClass  provides clasIdentifier){
-                                        CompositionLocalProvider(localCommonModel  provides commonModel){
+                                        CompositionLocalProvider(localAppLevelActionController  provides appLevelActionController){
                                             CompositionLocalProvider(localNavController  provides composeTargets.getControllerForTarget(it.targetKey)) {
                                                 if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.SendToMe) {
-                                                    BackHandler(onBack = { commonModel?.onBackPressed(it.targetKey) })
+                                                    BackHandler(onBack = { appLevelActionController?.onBackPressed(it.targetKey) })
                                                 } else if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.Default) {
                                                     //todo
                                                     BackHandler(onBack = { moveTo(Router.MoveBack()) })
@@ -262,7 +262,7 @@ class RouterImpl: Router {
                                                 //TODO maybe crutch
                                                 if (composeTargets.updateCurrentIdForDestination(it.targetKey, entry.id) == null) {
                                                     Log.d("test", "send navigation in compose")
-                                                    commonModel?.apply {
+                                                    appLevelActionController?.apply {
                                                         putNavigateEvent(NavigationEvent.NavigateSusses(it.targetKey ?: EMPTY_STRING))
                                                     }
                                                 }
@@ -316,14 +316,14 @@ class RouterImpl: Router {
         fun afterNavigate(keyedData: KeyedData? = null){
             if(currId != currentEntryId){
                 keyedData?.let { data ->
-                    commonModel?.apply {
+                    appLevelActionController?.apply {
                         putNavigateEvent(NavigationEvent.BackDataEvent(data.appendData(unionData)))
                     }
                 }
                 navigationTarget.onTargetReached?.apply {
                     invoke(currentTarget ?: EMPTY_STRING)
                 }
-                commonModel?.apply {
+                appLevelActionController?.apply {
                         putNavigateEvent(NavigationEvent.NavigateSusses(currentTarget ?: EMPTY_STRING))
                 }
             }
@@ -342,7 +342,7 @@ class RouterImpl: Router {
                     logStack("after navigation")
                     afterNavigate(navigationTarget.keyedData)
                 } ?: run{
-                    commonModel?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
+                    appLevelActionController?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
                 }
             }
             
@@ -360,7 +360,7 @@ class RouterImpl: Router {
                     logSuses()
                     logStack("after navigation")
                 } ?: run{
-                    commonModel?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
+                    appLevelActionController?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
                     Exception("controller for target not found").printStackTrace()
                 }
                 afterNavigate()

@@ -1,4 +1,4 @@
-package com.starsoft.skeleton.compose.baseViewModel
+package com.starsoft.skeleton.compose.controller
 
 import android.os.Bundle
 import com.starsoft.skeleton.compose.navigation.HostCreator
@@ -62,7 +62,7 @@ sealed interface NavigationEvent{
     data class BackPressed(val currentTarget: String): NavigationEvent
 }
 
-interface CommonModel: HostCreator {
+interface AppLevelActionController: HostCreator {
     val errorHandler: ErrorHandler
     val activityLevelActionFlow: SharedFlow<ActivityLevelAction>
     val externalEventFlow: SharedFlow<ExternalEvent>
@@ -82,5 +82,5 @@ interface CommonModel: HostCreator {
 }
 
 interface CommonModelOwner{
-    var commonModel: CommonModel
+    var appLevelActionController: AppLevelActionController
 }

@@ -20,9 +20,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.colorResource
 import com.starsoft.skeleton.compose.R
-import com.starsoft.skeleton.compose.baseViewModel.CommonModel
-import com.starsoft.skeleton.compose.baseViewModel.CommonModelOwner
-import com.starsoft.skeleton.compose.baseViewModel.ActivityLevelAction
+import com.starsoft.skeleton.compose.controller.AppLevelActionController
+import com.starsoft.skeleton.compose.controller.CommonModelOwner
+import com.starsoft.skeleton.compose.controller.ActivityLevelAction
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.navigation.getRFinishFlag
 import com.starsoft.skeleton.compose.navigation.moveToActivity
@@ -44,9 +44,9 @@ import com.starsoft.skeleton.compose.util.showKeyboardByIMS
  */
 abstract class BaseComposeActivity: ComponentActivity(), CommonModelOwner {
     
-    override lateinit var  commonModel: CommonModel
+    override lateinit var  appLevelActionController: AppLevelActionController
     
-    abstract fun obtainCommonModel(): CommonModel
+    abstract fun obtainAppLevelActionController(): AppLevelActionController
     
     @Composable
     abstract fun SetRootUi()
@@ -55,14 +55,14 @@ abstract class BaseComposeActivity: ComponentActivity(), CommonModelOwner {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        commonModel = obtainCommonModel()
-        Log.d("test","obtained RootFlowSharedViewModel ${(commonModel).hashCode()}")
+        appLevelActionController = obtainAppLevelActionController()
+        Log.d("test","obtained RootFlowSharedViewModel ${(appLevelActionController).hashCode()}")
         keyboardListener = KeyboardListener(this, this) { isVisible ->
             Log.d("test","keyboardListener keyboard $isVisible")
-            commonModel.currentKeyboardState = keyboardStateByVisibility(isVisible)
+            appLevelActionController.currentKeyboardState = keyboardStateByVisibility(isVisible)
         }
         setContent {
-            val event = commonModel.activityLevelActionFlow.collectAsState(ActivityLevelAction.MessageAction(Event(EMPTY_STRING)))
+            val event = appLevelActionController.activityLevelActionFlow.collectAsState(ActivityLevelAction.MessageAction(Event(EMPTY_STRING)))
             SetRootUi()
             HandleGlobalActions(event)
         }
@@ -146,7 +146,7 @@ abstract class BaseComposeActivity: ComponentActivity(), CommonModelOwner {
             
             is ActivityLevelAction.KeyboardAction -> {
                 
-                Log.d("test", "keyboard current ${commonModel.currentKeyboardState} ")
+                Log.d("test", "keyboard current ${appLevelActionController.currentKeyboardState} ")
                 if (action.keyboardState.visible) {
                 Log.d("test", "try show keyboard current ${WindowInsets.isImeVisible} ")
                 //LocalSoftwareKeyboardController.current?.show()
