@@ -1,4 +1,4 @@
-package com.starsoft.testapp.applicationFlow.rootFlow.secondPageFlow
+package com.starsoft.testhiltapp.secondPageFlow
 
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
@@ -7,18 +7,17 @@ import com.starsoft.skeleton.compose.controller.moveToTarget
 import com.starsoft.skeleton.compose.controller.showMessage
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
-import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel.Companion.testRootFlowSharedViewModel
-import com.starsoft.testapp.applicationFlow.SharedModel
+import com.starsoft.testhiltapp.rootFlow.RootFlowSharedViewModel.Companion.testRootFlowSharedViewModel
+import com.starsoft.testhiltapp.rootFlow.SharedModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import toothpick.InjectConstructor
+import javax.inject.Inject
 
 
 /**
- * Created by Dmitry Starkin on 28.02.2025 12:40.
+ * Created by Dmitry Starkin on 06.03.2025 18:38.
  */
-
-
 sealed interface UiAction{
     
     data object FirstButtonClicked: UiAction
@@ -35,8 +34,8 @@ data class UiState(
 
 val MY_BACK_DATA_KEY ="com.starsoft.testapp.applicationflow.rootFlow.secondPageFlow.SecondPageViewModel.backData"
 
-@InjectConstructor
-class SecondPageViewModel(
+@HiltViewModel
+class SecondPageViewModel @Inject constructor(
         private val rootFlowSharedViewModel: SharedModel
 ) : ViewModel(),  AppLevelActionController by rootFlowSharedViewModel
 {

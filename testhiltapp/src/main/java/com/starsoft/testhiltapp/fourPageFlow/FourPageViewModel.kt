@@ -1,24 +1,25 @@
-package com.starsoft.testapp.applicationFlow.rootFlow.secondPageFlow
+package com.starsoft.testhiltapp.fourPageFlow
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import com.starsoft.skeleton.compose.controller.AppLevelActionController
 import com.starsoft.skeleton.compose.controller.moveToTarget
 import com.starsoft.skeleton.compose.controller.showMessage
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
-import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel.Companion.testRootFlowSharedViewModel
-import com.starsoft.testapp.applicationFlow.SharedModel
+import com.starsoft.testhiltapp.fourPageFlow.data.FourPageRepo
+import com.starsoft.testhiltapp.rootFlow.RootFlowSharedViewModel.Companion.testRootFlowSharedViewModel
+import com.starsoft.testhiltapp.rootFlow.SharedModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import toothpick.InjectConstructor
+import javax.inject.Inject
 
 
 /**
- * Created by Dmitry Starkin on 28.02.2025 12:40.
+ * Created by Dmitry Starkin on 06.03.2025 18:47.
  */
-
-
 sealed interface UiAction{
     
     data object FirstButtonClicked: UiAction
@@ -28,24 +29,25 @@ sealed interface UiAction{
     data object FifeButtonClicked: UiAction
 }
 
+
 data class UiState(
         val baskText: String = EMPTY_STRING,
-        val spinnerVisibility: Boolean = false
 )
 
-val MY_BACK_DATA_KEY ="com.starsoft.testapp.applicationflow.rootFlow.secondPageFlow.SecondPageViewModel.backData"
+val MY_BACK_DATA_KEY ="com.starsoft.testapp.applicationflow.rootFlow.firstPageFlow.Four.backData"
 
-@InjectConstructor
-class SecondPageViewModel(
-        private val rootFlowSharedViewModel: SharedModel
+@HiltViewModel
+class FourPageViewModel @Inject constructor(
+        private val rootFlowSharedViewModel: SharedModel,
+        private val repo: FourPageRepo
 ) : ViewModel(),  AppLevelActionController by rootFlowSharedViewModel
 {
     
     companion object{
-        val testSecondPageViewModel: SecondPageViewModel @Composable
-        get() = SecondPageViewModel(testRootFlowSharedViewModel).also {
+        val testFourPageViewModel: FourPageViewModel @Composable
+        get() = FourPageViewModel(testRootFlowSharedViewModel, FourPageRepo(LocalContext.current)).also {
                 it._uiState.value =
-                    UiState("Test", true)
+                    UiState("Test")
             }
     }
     
@@ -54,8 +56,8 @@ class SecondPageViewModel(
     
     fun onUiAction(action: UiAction){
         when(action){
-            UiAction.FirstButtonClicked -> showMessage("Test message")
-            UiAction.SecondButtonClicked -> _uiState.value = _uiState.value.copy(spinnerVisibility = !_uiState.value.spinnerVisibility)
+            UiAction.FirstButtonClicked -> showMessage(repo.stringData)
+            UiAction.SecondButtonClicked -> TODO()
             UiAction.ThirdButtonClicked -> TODO()
             UiAction.FourButtonClicked -> TODO()
             UiAction.FifeButtonClicked -> moveToTarget(Router.MoveBack())
