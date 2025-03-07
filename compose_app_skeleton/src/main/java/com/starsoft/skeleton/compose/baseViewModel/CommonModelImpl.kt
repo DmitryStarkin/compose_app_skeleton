@@ -82,4 +82,8 @@ class CommonModelImpl(override val errorHandler: ErrorHandler, private val route
             _navigationEventFlow.emit(event)
         }
     }
+    
+    override fun clean() {
+        onCleared()
+    }
 }
