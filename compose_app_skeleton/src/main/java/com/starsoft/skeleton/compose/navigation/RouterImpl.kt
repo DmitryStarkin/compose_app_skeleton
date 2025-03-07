@@ -187,16 +187,22 @@ class RouterImpl: Router {
     
     @Composable
     private fun CreateNavHost(
-            entry: ComposeNavigationGraphEntry,
+            graphEntry: ComposeNavigationGraphEntry,
             startDest: String? = null
     ){
-        NavHost(entry.controller!!, startDestination = startDest?.let { if(it in entry.destinations.map{it.targetKey}){it} else {emptyDest.destinationName} } ?: emptyDest.destinationName) {
+        NavHost(graphEntry.controller!!, startDestination = startDest?.let { if(it in graphEntry.destinations.map{it.targetKey}){it} else {emptyDest.destinationName} } ?: emptyDest.destinationName) {
             if( startDest == null){
                 composable(route = emptyDest.destinationName) { entry ->
-                    emptyDest.content(entry,  null)
+                    //TODO it for case if startDest = null
+                    // we simply delete the first blank page
+                    // the calling code must make the transition otherwise there will be a blank screen.
+                    // still not tested
+                    
+                    graphEntry.controller?.popBackStack(emptyDest.destinationName, inclusive = true, saveState = false)
+                    //emptyDest.content(entry,  null)
                 }
             }
-            entry.destinations.forEach {
+            graphEntry.destinations.forEach {
                 when{
                     it.destination.isExtendInterface(ComposeScreen::class.java) -> {
                         composable(
