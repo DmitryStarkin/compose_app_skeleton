@@ -14,7 +14,7 @@ import com.starsoft.skeleton.compose.controller.moveToTarget
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.navigation.addPopUpOption
 import com.starsoft.skeleton.compose.navigation.asTarget
-import com.starsoft.skeleton.compose.navigation.toNavTarget
+import com.starsoft.skeleton.compose.navigation.asNavTarget
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.testhiltapp.firstPageFlow.FirstPage
 import com.starsoft.testhiltapp.fourPageFlow.FourPage
@@ -77,7 +77,7 @@ class RootUIViewModel @Inject constructor(
     fun onUiAction(action: UiAction){
         when(action){
             is UiAction.OnBottomTabButtonClicked -> {
-                moveToTarget(action.tab.target.toNavTarget().addPopUpOption(_uiState.value.currentTarget, inclusive = true, saveData = true))
+                moveToTarget(action.tab.target.asNavTarget().addPopUpOption(_uiState.value.currentTarget, inclusive = true, saveData = true))
             }
         }
     }

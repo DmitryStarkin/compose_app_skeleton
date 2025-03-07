@@ -36,7 +36,7 @@ interface Router: HostCreator {
         val options: NavOptions? get() = null
         val extras: Navigator. Extras? get() = null
         val data: Bundle? get() = null
-        
+        val parentTargets: List<Target>? get() = null
         val onTargetReached: ((String) -> Unit)? get() = null
         
         class NavigationTargetStub(): NavigationTarget {
@@ -59,8 +59,6 @@ interface Router: HostCreator {
     
     interface TargetProperties: Target {
         val targetCreateOptions: TargetCreateOptions? get() = null
-        //TODO
-        val cildTargets: List<Target>? get() = null
         fun isTheSameTarget(other: TargetProperties) = targetKey == other.targetKey
     }
     

@@ -32,6 +32,7 @@ import com.starsoft.skeleton.compose.util.LifecycleSupport
 import com.starsoft.skeleton.compose.util.containsAnyItemFrom
 import com.starsoft.skeleton.compose.util.isExtendInterface
 import kotlinx.parcelize.Parcelize
+import java.util.Stack
 import kotlin.reflect.KClass
 
 /**
@@ -44,7 +45,7 @@ val  localNavController = compositionLocalOf<NavController?> { error("not init")
 
 class RouterImpl: Router {
     companion object{
-        const val ARG ="com.starsoft.skeleton.compose.navigation.Router.data_bundle_"
+        private const val ARG ="com.starsoft.skeleton.compose.navigation.Router.data_bundle_"
         const val ROUT_FUN_KEY ="om.starsoft.skeleton.compose.navigation.Router.routFun"
         
             fun ((String) -> Unit)?.packToBundle(): Bundle? =
@@ -361,15 +362,51 @@ class RouterImpl: Router {
                 composeTargets.getControllerForTarget(navigationTarget.targetKey)?.apply {
                     navigateInternal(navigationTarget.targetKey, Bundle().also {
                                                                     it.putBundle("$ARG${navigationTarget.targetKey}", unionData)
-                                                                    //it.addTargetReachedFunction(rout.onTargetReached)
                                                                 }, navigationTarget.options, navigationTarget.extras)
                     logSuses()
                     logStack("after navigation")
+                    afterNavigate()
                 } ?: run{
-                    appLevelActionController?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
-                    Exception("controller for target not found").printStackTrace()
+                    //appLevelActionController?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
+                    Exception("controller for target ${navigationTarget.targetKey} not found").printStackTrace()
                 }
-                afterNavigate()
+                //TODO
+//                val newData = Bundle().also { it.putBundle("$ARG${navigationTarget.targetKey}", unionData)}
+//
+//                if(!navigateForward(Stack<Router.NavigationTarget>().also { it.push(navigationTarget.replaceData(newData)) })){
+//                    Exception("controller for target ${navigationTarget.targetKey} not found").printStackTrace()
+//                }
+            }
+        }
+    }
+    
+    
+    //TODO
+    private fun navigateForward(targetsStack: Stack<Router.NavigationTarget> = Stack(), parentsStack: Stack<Router.Target> = Stack()) : Boolean{
+        
+        if (targetsStack.isEmpty()){ return false }
+       
+        val navigationTarget = targetsStack.peek()
+        return composeTargets.getControllerForTarget(navigationTarget.targetKey)?.let {
+            it.navigateInternal(navigationTarget.targetKey, navigationTarget.data, navigationTarget.options, navigationTarget.extras)
+            it.logStack("after navigation")
+            targetsStack.pop()
+            if(targetsStack.isEmpty()){
+                true
+            } else {
+                navigateForward(targetsStack, parentsStack)
+            }
+        } ?: run{
+            navigationTarget.parentTargets?.apply{
+                parentsStack.addAll(this)
+                parentsStack.reverse()
+            }
+            
+            return@run if (parentsStack.isEmpty()){
+                false
+            } else {
+                targetsStack.push(parentsStack.pop().asNavTarget())
+                navigateForward(targetsStack, parentsStack)
             }
         }
     }

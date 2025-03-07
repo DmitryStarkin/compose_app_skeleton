@@ -14,7 +14,7 @@ import com.starsoft.skeleton.compose.controller.moveToTarget
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.navigation.addPopUpOption
 import com.starsoft.skeleton.compose.navigation.asTarget
-import com.starsoft.skeleton.compose.navigation.toNavTarget
+import com.starsoft.skeleton.compose.navigation.asNavTarget
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel.Companion.testRootFlowSharedViewModel
 import com.starsoft.testapp.applicationFlow.SharedModel
@@ -79,7 +79,7 @@ class RootUIViewModel(
     fun onUiAction(action: UiAction){
         when(action){
             is UiAction.OnBottomTabButtonClicked -> {
-                moveToTarget(action.tab.target.toNavTarget().addPopUpOption(_uiState.value.currentTarget, inclusive = true, saveData = true))
+                moveToTarget(action.tab.target.asNavTarget().addPopUpOption(_uiState.value.currentTarget, inclusive = true, saveData = true))
             }
         }
     }

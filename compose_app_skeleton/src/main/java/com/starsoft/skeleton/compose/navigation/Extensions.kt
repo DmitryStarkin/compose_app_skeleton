@@ -14,6 +14,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.Navigator
 import com.starsoft.skeleton.compose.navigation.TargetCreateOptionsContainer.Companion.pack
 import com.starsoft.skeleton.compose.navigation.Router.BackPressBehavior
+import com.starsoft.skeleton.compose.navigation.TargetContainer.Companion.pack
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.skeleton.compose.util.KeyedData
 import kotlinx.parcelize.Parcelize
@@ -28,17 +29,20 @@ data class TargetContainer(
         override val destination: Class<*>,
         override val tag: String = EMPTY_STRING
 ): Router.Target, Parcelable {
-    
-    fun Router.Target.pack(): TargetContainer =
-        if(this is TargetContainer){
-            this
-        } else {
-            TargetContainer(
-                destination,
-                tag
-            )
-        }
+    companion object{
+        fun Router.Target.pack(): TargetContainer =
+            if(this is TargetContainer){
+                this
+            } else {
+                TargetContainer(
+                    destination,
+                    tag
+                )
+            }
+    }
 }
+
+
 
 val Router.TargetProperties.target : Router.Target get() =
         TargetContainer(
@@ -93,6 +97,7 @@ data class NestedPropertiesContainer(
 @Parcelize
 data class NavigationTargetContainer(override val destination: Class<*>,
                                      override val tag: String = EMPTY_STRING,
+                                     override val parentTargets: List<TargetContainer>? = null,
                                      override val options: @RawValue NavOptions?  = null,
                                      override val extras: @RawValue Navigator. Extras?  = null,
                                      override val data: Bundle? = null,
@@ -105,6 +110,9 @@ data class NavigationTargetContainer(override val destination: Class<*>,
             NavigationTargetContainer(
                 destination,
                 tag,
+                parentTargets?.map {
+                    it.pack()
+                },
                 options,
                 extras,
                 data,
@@ -114,11 +122,11 @@ data class NavigationTargetContainer(override val destination: Class<*>,
     }
 }
 
-fun Router.Target.toNavTarget(data: Bundle? = null, onTargetReached: ((String) -> Unit)? = null) =
-    NavigationTargetContainer(destination, tag, data = data, onTargetReached = onTargetReached)
+fun Router.Target.asNavTarget(data: Bundle? = null, parentTargets: List<TargetContainer>? = null, onTargetReached: ((String) -> Unit)? = null) =
+    NavigationTargetContainer(destination, tag, data = data, parentTargets = parentTargets, onTargetReached = onTargetReached)
 
-fun Class<*>.toNavTarget(tag: String = EMPTY_STRING, data: Bundle? = null, onTargetReached: ((String) -> Unit)? = null): Router.NavigationTarget =
-    NavigationTargetContainer(this@toNavTarget, tag, data = data, onTargetReached = onTargetReached)
+fun Class<*>.asNavTarget(tag: String = EMPTY_STRING, parentTargets: List<TargetContainer>? = null, data: Bundle? = null, onTargetReached: ((String) -> Unit)? = null): Router.NavigationTarget =
+    NavigationTargetContainer(this@asNavTarget, tag, data = data, parentTargets = parentTargets, onTargetReached = onTargetReached)
 
 fun Class<out Router.ComposeDestination>.moveBackTarget(data: KeyedData? = null, tag: String = EMPTY_STRING): Router.MoveBack =
     Router.MoveBack(data, asTargetProperties(tag).targetKey)
@@ -133,6 +141,9 @@ fun Router.NavigationTarget.addPopUpOption(popUpRout: String? = null, inclusive:
     NavigationTargetContainer(
         destination,
         tag,
+        parentTargets?.map {
+            it.pack()
+        },
         options.trySetPopUpOption(popUpRout ?: targetKey, inclusive, saveData),
         extras,
         data,
@@ -143,9 +154,25 @@ fun Router.NavigationTarget.addSingleTopOption(singleTop : Boolean = true): Navi
     NavigationTargetContainer(
         destination,
         tag,
+        parentTargets?.map {
+            it.pack()
+        },
         options.trySetSingleTop(singleTop),
         extras,
         data,
+        onTargetReached
+    )
+
+fun Router.NavigationTarget.replaceData(dataToReplace: Bundle?): NavigationTargetContainer =
+    NavigationTargetContainer(
+        destination,
+        tag,
+        parentTargets?.map {
+            it.pack()
+        },
+        options,
+        extras,
+        dataToReplace,
         onTargetReached
     )
 
@@ -153,6 +180,9 @@ fun Router.NavigationTarget.addRestoreStateOption(restore : Boolean = true): Nav
     NavigationTargetContainer(
         destination,
         tag,
+        parentTargets?.map {
+            it.pack()
+        },
         options.trySetRestoreState(restore),
         extras,
         data,
