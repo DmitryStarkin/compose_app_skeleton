@@ -2,9 +2,9 @@ package com.starsoft.testapp.applicationFlow.rootFlow.thirdPageFlow
 
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
-import com.starsoft.skeleton.compose.baseViewModel.CommonModel
-import com.starsoft.skeleton.compose.baseViewModel.moveToTarget
-import com.starsoft.skeleton.compose.baseViewModel.setKeyboardState
+import com.starsoft.skeleton.compose.controller.AppLevelActionController
+import com.starsoft.skeleton.compose.controller.moveToTarget
+import com.starsoft.skeleton.compose.controller.setKeyboardState
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.skeleton.compose.util.opposite
@@ -37,7 +37,7 @@ val MY_BACK_DATA_KEY ="com.starsoft.testapp.applicationflow.rootFlow.firstPageFl
 @InjectConstructor
 class ThirdPageViewModel(
         private val rootFlowSharedViewModel: SharedModel
-) : ViewModel(),  CommonModel by rootFlowSharedViewModel
+) : ViewModel(),  AppLevelActionController by rootFlowSharedViewModel
 {
     
     companion object{

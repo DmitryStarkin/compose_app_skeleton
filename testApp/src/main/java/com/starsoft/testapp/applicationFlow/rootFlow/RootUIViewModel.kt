@@ -7,10 +7,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.starsoft.skeleton.compose.baseViewModel.NavigationEvent
-import com.starsoft.skeleton.compose.baseViewModel.CommonModel
-import com.starsoft.skeleton.compose.baseViewModel.ExternalEvent
-import com.starsoft.skeleton.compose.baseViewModel.moveToTarget
+import com.starsoft.skeleton.compose.controller.NavigationEvent
+import com.starsoft.skeleton.compose.controller.AppLevelActionController
+import com.starsoft.skeleton.compose.controller.ExternalEvent
+import com.starsoft.skeleton.compose.controller.moveToTarget
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.navigation.addPopUpOption
 import com.starsoft.skeleton.compose.navigation.asTarget
@@ -56,7 +56,7 @@ data class UiState(
 @InjectConstructor
 class RootUIViewModel(
         private val rootFlowSharedViewModel: SharedModel
-) : ViewModel(),  CommonModel by rootFlowSharedViewModel
+) : ViewModel(),  AppLevelActionController by rootFlowSharedViewModel
 {
     companion object{
         val testRootUIViewModel: RootUIViewModel
@@ -71,7 +71,7 @@ class RootUIViewModel(
     val uiState: StateFlow<UiState> = _uiState
     
     init {
-        Log.d("test","RootViewModel init SharedViewModel ${rootFlowSharedViewModel.hashCode()} with commonModel ${rootFlowSharedViewModel.commonModel.hashCode()} ")
+        Log.d("test","RootViewModel init SharedViewModel ${rootFlowSharedViewModel.hashCode()} with commonModel ${rootFlowSharedViewModel.appLevelActionController.hashCode()} ")
         startCollectExternalEvents()
         startNavigationEvents()
     }

@@ -20,7 +20,7 @@ import androidx.navigation.NavBackStackEntry
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.navigation.localDestinationClass
 import com.starsoft.skeleton.compose.navigation.localScopeIdentifier
-import com.starsoft.skeleton.compose.navigation.localCommonModel
+import com.starsoft.skeleton.compose.navigation.localAppLevelActionController
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.testapp.applicationFlow.rootFlow.RootActivity
 import com.starsoft.testapp.applicationFlow.rootFlow.thirdPageFlow.ThirdPageViewModel.Companion.testThirdPageViewModel
@@ -78,7 +78,7 @@ fun ThirdPageUi(
             text = localScopeIdentifier.current.hashCode().toString()
         )
         Text(
-            text = localCommonModel.current.hashCode().toString()
+            text = localAppLevelActionController.current.hashCode().toString()
         )
         Button(onClick = {
             viewModel.onUiAction(UiAction.FirstButtonClicked)

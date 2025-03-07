@@ -20,7 +20,6 @@ import androidx.navigation.NavBackStackEntry
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.navigation.localDestinationClass
 import com.starsoft.skeleton.compose.navigation.localScopeIdentifier
-import com.starsoft.skeleton.compose.navigation.localCommonModel
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.testapp.applicationFlow.rootFlow.RootActivity.Companion.openParentScopes
 import com.starsoft.testapp.applicationFlow.rootFlow.firstPageFlow.di.modules.fourModule

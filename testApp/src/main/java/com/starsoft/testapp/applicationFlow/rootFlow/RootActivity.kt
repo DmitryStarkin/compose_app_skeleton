@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.compose.runtime.Composable
 import com.starsoft.testapp.utils.viewModel
 import androidx.navigation.compose.rememberNavController
-import com.starsoft.skeleton.compose.baseViewModel.CommonModel
+import com.starsoft.skeleton.compose.controller.AppLevelActionController
 import com.starsoft.skeleton.compose.baseui.BaseComposeActivity
 import com.starsoft.testapp.applicationFlow.rootFlow.di.modules.mainModule
 import com.starsoft.skeleton.compose.navigation.listOf
@@ -26,8 +26,7 @@ class RootActivity : BaseComposeActivity(), Provider<SharedModel>{
         fun openParentScopes(): Scope = KTP.openScope(RootActivity::class)
     }
     
-    override fun obtainCommonModel(): CommonModel = viewModel<RootFlowSharedViewModel>().value
-    
+    override fun obtainAppLevelActionController(): AppLevelActionController = viewModel<RootFlowSharedViewModel>().value
     
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d("test","RootActivity onCreate")
@@ -43,7 +42,7 @@ class RootActivity : BaseComposeActivity(), Provider<SharedModel>{
     override fun SetRootUi() {
         Log.d("test","SetRootUi")
         val controller = rememberNavController()
-        commonModel.CreateNavHostHere(
+        appLevelActionController.CreateNavHostHere(
             navController = controller,
             targets = listOf(
                 SplashScreen::class.java,
@@ -52,6 +51,6 @@ class RootActivity : BaseComposeActivity(), Provider<SharedModel>{
         )
     }
     
-    override fun get(): SharedModel = commonModel as SharedModel
+    override fun get(): SharedModel = appLevelActionController as SharedModel
     
 }

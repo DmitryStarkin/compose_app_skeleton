@@ -1,9 +1,9 @@
 package com.starsoft.testapp.applicationFlow.rootFlow.fourPageFlow
 
 import androidx.compose.runtime.Composable
-import com.starsoft.skeleton.compose.baseViewModel.CommonModel
-import com.starsoft.skeleton.compose.baseViewModel.moveToTarget
-import com.starsoft.skeleton.compose.baseViewModel.showMessage
+import com.starsoft.skeleton.compose.controller.AppLevelActionController
+import com.starsoft.skeleton.compose.controller.moveToTarget
+import com.starsoft.skeleton.compose.controller.showMessage
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel.Companion.testRootFlowSharedViewModel
@@ -38,7 +38,7 @@ val MY_BACK_DATA_KEY ="com.starsoft.testapp.applicationflow.rootFlow.firstPageFl
 class FourPageViewModel(
         private val rootFlowSharedViewModel: SharedModel,
         private val repo: FourPageRepo
-) : KTPAutoScopeCloseViewModel(),  CommonModel by rootFlowSharedViewModel
+) : KTPAutoScopeCloseViewModel(),  AppLevelActionController by rootFlowSharedViewModel
 {
     
     companion object{

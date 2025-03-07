@@ -4,10 +4,10 @@ import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.starsoft.skeleton.compose.baseViewModel.CommonModel
-import com.starsoft.skeleton.compose.baseViewModel.ExternalEvent
-import com.starsoft.skeleton.compose.baseViewModel.NavigationEvent
-import com.starsoft.skeleton.compose.baseViewModel.moveToTarget
+import com.starsoft.skeleton.compose.controller.AppLevelActionController
+import com.starsoft.skeleton.compose.controller.ExternalEvent
+import com.starsoft.skeleton.compose.controller.NavigationEvent
+import com.starsoft.skeleton.compose.controller.moveToTarget
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.testapp.applicationFlow.RootFlowSharedViewModel.Companion.testRootFlowSharedViewModel
@@ -43,7 +43,7 @@ val MY_BACK_DATA_KEY ="com.starsoft.testapp.applicationflow.rootFlow.firstPageFl
 @InjectConstructor
 class FirstPageViewModel(
         private val rootFlowSharedViewModel: SharedModel
-) : ViewModel(),  CommonModel by rootFlowSharedViewModel
+) : ViewModel(),  AppLevelActionController by rootFlowSharedViewModel
 {
     
     companion object{
@@ -55,7 +55,7 @@ class FirstPageViewModel(
     }
     
     init {
-        Log.d("test","FirstPageViewModel init SharedViewModel ${rootFlowSharedViewModel.hashCode()} with commonModel ${rootFlowSharedViewModel.commonModel.hashCode()} ")
+        Log.d("test","FirstPageViewModel init SharedViewModel ${rootFlowSharedViewModel.hashCode()} with commonModel ${rootFlowSharedViewModel.appLevelActionController.hashCode()} ")
         startNavigationEvents()
     }
     
