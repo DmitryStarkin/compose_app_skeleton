@@ -1,7 +1,7 @@
 ## Introduction
 
 This module is a framework for creating a simple (or maybe complex) Android Compose application.
-The module provides a navigation system and typical actions in the application.<br/>
+The module provides a navigation system  (as an add-on to the standard navigation) and typical actions in the application.<br/>
 **the module is currently under testing**
 
 ## Architecture

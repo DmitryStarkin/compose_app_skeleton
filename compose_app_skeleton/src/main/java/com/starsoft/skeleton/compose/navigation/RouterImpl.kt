@@ -252,7 +252,6 @@ class RouterImpl: Router {
                                             if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.SendToMe) {
                                                 BackHandler(onBack = { appLevelActionController?.onBackPressed(it.targetKey) })
                                             } else if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.Default) {
-                                                //todo
                                                 BackHandler(onBack = { moveTo(Router.MoveBack()) })
                                             }
                                             //TODO maybe crutch
@@ -286,7 +285,6 @@ class RouterImpl: Router {
                                                 if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.SendToMe) {
                                                     BackHandler(onBack = { appLevelActionController?.onBackPressed(it.targetKey) })
                                                 } else if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.Default) {
-                                                    //todo
                                                     BackHandler(onBack = { moveTo(Router.MoveBack()) })
                                                 }
                                                 //TODO maybe crutch
