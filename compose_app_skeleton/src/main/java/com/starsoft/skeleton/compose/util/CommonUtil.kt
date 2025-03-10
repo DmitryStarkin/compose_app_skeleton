@@ -13,4 +13,9 @@ fun <T> Collection<T>.containsAnyItemFrom(other: Collection<T>): Boolean =
         }
         false
     }
-    
+
+
+fun <T> List<T>.add(item: T) : List<T>  = ArrayList<T>().also {
+    it.addAll(this)
+    it.add(item)
+}

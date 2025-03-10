@@ -24,12 +24,14 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.rememberNavController
+import com.starsoft.skeleton.compose.controller.moveToTarget
 import com.starsoft.skeleton.compose.navigation.listOf
 import com.starsoft.skeleton.compose.navigation.Router
 import com.starsoft.skeleton.compose.navigation.addBackButtonBehavior
 import com.starsoft.skeleton.compose.navigation.asTarget
 import com.starsoft.skeleton.compose.navigation.localScopeIdentifier
 import com.starsoft.skeleton.compose.navigation.asTargetProperties
+import com.starsoft.skeleton.compose.navigation.localAppLevelActionController
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.testapp.R
 import com.starsoft.testapp.applicationFlow.rootFlow.RootUIViewModel.Companion.testRootUIViewModel
@@ -117,8 +119,11 @@ fun RootUi(
                 SecondPage::class.java.asTargetProperties().addBackButtonBehavior(Router.BackPressBehavior.Default),
                 ThirdPage::class.java.asTargetProperties().addBackButtonBehavior(Router.BackPressBehavior.Default),
                 FourPage::class.java.asTargetProperties().addBackButtonBehavior(Router.BackPressBehavior.Default)
-            ),
-                startTarget = FirstPage::class.java.asTarget() )
+            )
+                , startTarget = FirstPage::class.java.asTarget()
+            )
+            
+            //localAppLevelActionController.current?.moveToTarget(FirstPage::class.java.asTarget() )
         }
     }
 }

@@ -23,6 +23,7 @@ import com.starsoft.skeleton.compose.navigation.localAppLevelActionController
 import com.starsoft.skeleton.compose.navigation.asNavTarget
 import com.starsoft.testapp.R
 import com.starsoft.testapp.applicationFlow.rootFlow.RootScreen
+import com.starsoft.testapp.applicationFlow.rootFlow.fourPageFlow.FourPage
 
 /**
  * Created by Dmitry Starkin on 05.03.2025 18:09.
@@ -70,6 +71,18 @@ fun SplashPageUi(
                 endValue = 0,
                 delayMs = 1000L,
                 onEnd = {
+                
+//                    viewModel?.moveToTarget(
+//                        FourPage::class.java
+//                            .asNavTarget()
+//                            .addPopUpOption(
+//                                SplashScreen::class.java
+//                                    .asNavTarget(),
+//                                    inclusive = true,
+//                                    saveData = false)
+//                    )
+                    
+                    
                     viewModel?.moveToTarget(
                         RootScreen::class.java
                             .asNavTarget()
@@ -78,7 +91,7 @@ fun SplashPageUi(
                                     .asNavTarget(),
                                     inclusive = true,
                                     saveData = false))
-                }
+               }
             ){current, isCount ->
                 if(isCount){
                     Text(

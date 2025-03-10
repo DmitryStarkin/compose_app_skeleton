@@ -22,13 +22,17 @@ import androidx.navigation.compose.dialog
 import com.starsoft.skeleton.compose.controller.ActivityLevelAction.NavigationAction.Companion.obtainNavigationAction
 import com.starsoft.skeleton.compose.controller.NavigationEvent
 import com.starsoft.skeleton.compose.controller.AppLevelActionController
+import com.starsoft.skeleton.compose.navigation.HostForDetached.Companion.DETACHED_TARGET_KEY
+import com.starsoft.skeleton.compose.navigation.HostForDetached.Companion.hostForDetachedProperties
+import com.starsoft.skeleton.compose.navigation.HostForDetached.Companion.hostForDetachedTargetKey
 import com.starsoft.skeleton.compose.navigation.Router.ComposeDestination
 import com.starsoft.skeleton.compose.navigation.Router.ComposeScreen
-import com.starsoft.skeleton.compose.navigation.RouterImpl.ComposeNavigationGraphEntry.Companion.getControllerForTarget
+import com.starsoft.skeleton.compose.navigation.RouterImpl.ComposeNavigationGraphEntry.Companion.getControllerForTargetKey
 import com.starsoft.skeleton.compose.navigation.RouterImpl.ComposeNavigationGraphEntry.Companion.updateCurrentIdForDestination
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.skeleton.compose.util.KeyedData
 import com.starsoft.skeleton.compose.util.LifecycleSupport
+import com.starsoft.skeleton.compose.util.add
 import com.starsoft.skeleton.compose.util.containsAnyItemFrom
 import com.starsoft.skeleton.compose.util.isExtendInterface
 import kotlinx.parcelize.Parcelize
@@ -41,7 +45,7 @@ import kotlin.reflect.KClass
 val  localScopeIdentifier = compositionLocalOf { EMPTY_STRING }
 val  localAppLevelActionController = compositionLocalOf<AppLevelActionController?> { error("not init") }
 val  localDestinationClass = compositionLocalOf<KClass<*>> { Router.ComposeDestination::class }
-val  localNavController = compositionLocalOf<NavController?> { error("not init") }
+val  localNavController = compositionLocalOf<NavHostController?> { null }
 
 class RouterImpl: Router {
     companion object{
@@ -72,7 +76,7 @@ class RouterImpl: Router {
     }
     
     private val composeTargets: ArrayList<ComposeNavigationGraphEntry> = ArrayList()
-    private var currentTarget: String? = null
+    private var currentTargetKey: String? = null
     private var currentEntryId: String? = null
     override var appLevelActionController: AppLevelActionController? = null
     
@@ -139,24 +143,47 @@ class RouterImpl: Router {
         } catch (e: IllegalStateException){
             e.printStackTrace()
         }
-        currentTarget = this.currentDestination?.route
+        currentTargetKey = this.currentDestination?.route
         currentEntryId = this.currentBackStackEntry?.id
     }
     
-    private fun NavController.popBackStackInternal(): Boolean
+    private fun NavHostController.popBackStackInternal(parent: NavHostController?): Boolean
      {
+         this.logStack("before pop controller ${this.hashCode()}")
+         fun close(){
+             currentTargetKey = null
+             appLevelActionController?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
+         }
+        
         val popped = popBackStack()
          if(popped){
-             currentTarget = this.currentDestination?.route
-             if(currentTarget == emptyDest.destinationName){
-                 return popBackStackInternal()
+             this.logStack("after pop controller ${this.hashCode()}")
+             currentTargetKey = this.currentDestination?.route
+             if(currentTargetKey == emptyDest.destinationName){
+                 return popBackStackInternal(parent)
              }
          }
          if(!popped){
-             currentTarget = null
-             appLevelActionController?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
+             parent?.let {
+                 it.currentDestination?.route?.let{targetKey ->
+                     composeTargets.getControllerForTargetKey(targetKey)?.let{controllers ->
+                         
+                         controllers.first?.popBackStackInternal(controllers.second) ?: run{
+                             close()
+                         }
+                     } ?: run{
+                         close()
+                     }
+                 } ?: run{
+                     close()
+                 }
+             
+             } ?: run{
+                 close()
+             }
          }
          currentEntryId = this.currentBackStackEntry?.id
+         this.previousBackStackEntry
         return popped
     }
     
@@ -168,7 +195,12 @@ class RouterImpl: Router {
     ){
         if(targets.isEmpty() || (startTarget != null && startTarget.targetKey !in targets.getTargets())) return
         composeTargets.removeEmpty()
-        val entry = ComposeNavigationGraphEntry(navController, targets.map { DestinationsHolder(it) })
+        val newTargets = if(composeTargets.isEmpty()){
+            targets.add(hostForDetachedProperties)
+        } else {
+            targets
+        }
+        val entry = ComposeNavigationGraphEntry(navController, localNavController.current, newTargets.map { DestinationsHolder(it) })
         if(composeTargets.isContain(entry)) return
         if(composeTargets.isContainRoutFrom(entry)) throw Exception("Rout already exists in tree use tag for unique")
         composeTargets.add(0, entry.also {
@@ -194,13 +226,7 @@ class RouterImpl: Router {
         NavHost(graphEntry.controller!!, startDestination = startDest?.let { if(it in graphEntry.destinations.map{it.targetKey}){it} else {emptyDest.destinationName} } ?: emptyDest.destinationName) {
             if( startDest == null){
                 composable(route = emptyDest.destinationName) { entry ->
-                    //TODO it for case if startDest = null
-                    // we simply delete the first blank page
-                    // the calling code must make the transition otherwise there will be a blank screen.
-                    // still not tested
-                    
-                    graphEntry.controller?.popBackStack(emptyDest.destinationName, inclusive = true, saveState = false)
-                    //emptyDest.content(entry,  null)
+                    emptyDest.content(entry,  null)
                 }
             }
             graphEntry.destinations.forEach {
@@ -225,7 +251,7 @@ class RouterImpl: Router {
                                 CompositionLocalProvider(localScopeIdentifier  provides scopeIdentifier){
                                     CompositionLocalProvider(localDestinationClass  provides clasIdentifier){
                                         CompositionLocalProvider(localAppLevelActionController  provides appLevelActionController) {
-                                            CompositionLocalProvider(localNavController  provides composeTargets.getControllerForTarget(it.targetKey)) {
+                                            CompositionLocalProvider(localNavController  provides composeTargets.getControllerForTargetKey(it.targetKey)?.first) {
                                             if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.SendToMe) {
                                                 BackHandler(onBack = { appLevelActionController?.onBackPressed(it.targetKey) })
                                             } else if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.Default) {
@@ -259,7 +285,7 @@ class RouterImpl: Router {
                                 CompositionLocalProvider(localScopeIdentifier  provides scopeIdentifier){
                                     CompositionLocalProvider(localDestinationClass  provides clasIdentifier){
                                         CompositionLocalProvider(localAppLevelActionController  provides appLevelActionController){
-                                            CompositionLocalProvider(localNavController  provides composeTargets.getControllerForTarget(it.targetKey)) {
+                                            CompositionLocalProvider(localNavController  provides composeTargets.getControllerForTargetKey(it.targetKey)?.first) {
                                                 if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.SendToMe) {
                                                     BackHandler(onBack = { appLevelActionController?.onBackPressed(it.targetKey) })
                                                 } else if (it.targetCreateOptions?.backPressHandleBehavior == Router.BackPressBehavior.Default) {
@@ -303,7 +329,7 @@ class RouterImpl: Router {
     
     override fun moveTo(navigationTarget: Router.NavigationTarget, data: Bundle?){
         Log.d("test","move to ${navigationTarget} ")
-        Log.d("test","current route ${currentTarget} ")
+        Log.d("test","current route ${currentTargetKey} ")
         if(navigationTarget is Router.NavigationTarget.NavigationTargetStub) {
             return
         }
@@ -328,10 +354,10 @@ class RouterImpl: Router {
                     }
                 }
                 navigationTarget.onTargetReached?.apply {
-                    invoke(currentTarget ?: EMPTY_STRING)
+                    invoke(currentTargetKey ?: EMPTY_STRING)
                 }
                 appLevelActionController?.apply {
-                        putNavigateEvent(NavigationEvent.NavigateSusses(currentTarget ?: EMPTY_STRING))
+                        putNavigateEvent(NavigationEvent.NavigateSusses(currentTargetKey ?: EMPTY_STRING))
                 }
             }
         }
@@ -339,14 +365,14 @@ class RouterImpl: Router {
         when(navigationTarget){
             is Router.MoveBack -> {
                 (navigationTarget.hostMarker?.let { onHostRout ->
-                    composeTargets.getControllerForTarget(onHostRout)
-                } ?: currentTarget?.let { currentRout ->
-                    composeTargets.getControllerForTarget(currentRout)
+                    composeTargets.getControllerForTargetKey(onHostRout)
+                } ?: currentTargetKey?.let { currentRout ->
+                    composeTargets.getControllerForTargetKey(currentRout)
                 })?.apply {
-                    Log.d("test","try popBackStack with ${this.hashCode()} ")
-                    popBackStackInternal()
+                    Log.d("test","try popBackStack with ${this.first.hashCode()} ")
+                    first?.popBackStackInternal(second)
                     logSuses()
-                    logStack("after navigation")
+                    first?.logStack("after navigation")
                     afterNavigate(navigationTarget.keyedData)
                 } ?: run{
                     appLevelActionController?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
@@ -359,7 +385,7 @@ class RouterImpl: Router {
             
             else -> {
                 Log.d("test","try move to ${navigationTarget.targetKey} ")
-                composeTargets.getControllerForTarget(navigationTarget.targetKey)?.apply {
+                composeTargets.getControllerForTargetKey(navigationTarget.targetKey)?.first?.apply {
                     navigateInternal(navigationTarget.targetKey, Bundle().also {
                                                                     it.putBundle("$ARG${navigationTarget.targetKey}", unionData)
                                                                 }, navigationTarget.options, navigationTarget.extras)
@@ -367,8 +393,9 @@ class RouterImpl: Router {
                     logStack("after navigation")
                     afterNavigate()
                 } ?: run{
-                    //appLevelActionController?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
-                    Exception("controller for target ${navigationTarget.targetKey} not found").printStackTrace()
+                    if(!moveAsDetached(navigationTarget.replaceData(Bundle().also { it.putBundle("$ARG${navigationTarget.targetKey}", unionData)}))){
+                        Exception("controller for target ${navigationTarget.targetKey} not found").printStackTrace()
+                    }
                 }
                 //TODO
 //                val newData = Bundle().also { it.putBundle("$ARG${navigationTarget.targetKey}", unionData)}
@@ -380,6 +407,11 @@ class RouterImpl: Router {
         }
     }
     
+    private fun moveAsDetached(target: Router.NavigationTarget): Boolean =
+        composeTargets.getControllerForTargetKey(hostForDetachedTargetKey)?.first?.let {
+            it.navigateInternal(hostForDetachedTargetKey, Bundle().also { it.putBundle("$ARG${hostForDetachedTargetKey}", target.packToBundle(DETACHED_TARGET_KEY))})
+            true
+        } ?: false
     
     //TODO
     private fun navigateForward(targetsStack: Stack<Router.NavigationTarget> = Stack(), parentsStack: Stack<Router.Target> = Stack()) : Boolean{
@@ -387,7 +419,7 @@ class RouterImpl: Router {
         if (targetsStack.isEmpty()){ return false }
        
         val navigationTarget = targetsStack.peek()
-        return composeTargets.getControllerForTarget(navigationTarget.targetKey)?.let {
+        return composeTargets.getControllerForTargetKey(navigationTarget.targetKey)?.first?.let {
             it.navigateInternal(navigationTarget.targetKey, navigationTarget.data, navigationTarget.options, navigationTarget.extras)
             it.logStack("after navigation")
             targetsStack.pop()
@@ -411,18 +443,20 @@ class RouterImpl: Router {
         }
     }
     
-    private data class ComposeNavigationGraphEntry(var controller: NavHostController?, val destinations: List<DestinationsHolder>):
+    private data class ComposeNavigationGraphEntry(var controller: NavHostController?, var parentController: NavHostController?, val destinations: List<DestinationsHolder>):
         LifecycleSupport {
             var currentEntryId: String? = null
+        
+            val controllers: Pair<NavHostController?, NavHostController?> get() = Pair(controller, parentController)
             companion object{
-                fun List<ComposeNavigationGraphEntry>.getControllerForTarget(target: String): NavHostController? =
+                fun List<ComposeNavigationGraphEntry>.getControllerForTargetKey(target: String): Pair<NavHostController?, NavHostController?>? =
                     find {
                         target in it.destinations.map { destination ->
                             destination.targetKey
                         }
-                    }?.controller?.also {
+                    }?.controllers?.also {
                         //TODO
-                        it.logStack("Before navigate")
+                        it.first?.logStack("Before navigate")
                     }
                 
                 fun List<ComposeNavigationGraphEntry>.isHasDestination(target: String): Boolean =
@@ -446,6 +480,7 @@ class RouterImpl: Router {
         
         override fun finalizeTask() {
             controller = null
+            parentController = null
             currentEntryId = null
         }
     }

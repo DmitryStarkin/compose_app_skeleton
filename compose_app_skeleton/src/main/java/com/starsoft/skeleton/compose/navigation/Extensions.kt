@@ -7,14 +7,16 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.SizeTransform
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.os.bundleOf
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDeepLink
 import androidx.navigation.NavOptions
 import androidx.navigation.Navigator
+import com.starsoft.skeleton.compose.navigation.NavigationTargetContainer.Companion.packAsNavigationTarget
 import com.starsoft.skeleton.compose.navigation.TargetCreateOptionsContainer.Companion.pack
 import com.starsoft.skeleton.compose.navigation.Router.BackPressBehavior
-import com.starsoft.skeleton.compose.navigation.TargetContainer.Companion.pack
+import com.starsoft.skeleton.compose.navigation.TargetContainer.Companion.packAsTarget
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
 import com.starsoft.skeleton.compose.util.KeyedData
 import kotlinx.parcelize.Parcelize
@@ -30,7 +32,7 @@ data class TargetContainer(
         override val tag: String = EMPTY_STRING
 ): Router.Target, Parcelable {
     companion object{
-        fun Router.Target.pack(): TargetContainer =
+        fun Router.Target.packAsTarget(): TargetContainer =
             if(this is TargetContainer){
                 this
             } else {
@@ -104,14 +106,14 @@ data class NavigationTargetContainer(override val destination: Class<*>,
                                      override val onTargetReached: ((String) -> Unit)? = null
 ): Router.NavigationTarget, Parcelable{
     companion object{
-        fun Router.NavigationTarget.pack(): NavigationTargetContainer = if(this is NavigationTargetContainer){
+        fun Router.NavigationTarget.packAsNavigationTarget(): NavigationTargetContainer = if(this is NavigationTargetContainer){
             this
         } else {
             NavigationTargetContainer(
                 destination,
                 tag,
                 parentTargets?.map {
-                    it.pack()
+                    it.packAsTarget()
                 },
                 options,
                 extras,
@@ -142,7 +144,7 @@ fun Router.NavigationTarget.addPopUpOption(popUpRout: String? = null, inclusive:
         destination,
         tag,
         parentTargets?.map {
-            it.pack()
+            it.packAsTarget()
         },
         options.trySetPopUpOption(popUpRout ?: targetKey, inclusive, saveData),
         extras,
@@ -155,7 +157,7 @@ fun Router.NavigationTarget.addSingleTopOption(singleTop : Boolean = true): Navi
         destination,
         tag,
         parentTargets?.map {
-            it.pack()
+            it.packAsTarget()
         },
         options.trySetSingleTop(singleTop),
         extras,
@@ -168,7 +170,7 @@ fun Router.NavigationTarget.replaceData(dataToReplace: Bundle?): NavigationTarge
         destination,
         tag,
         parentTargets?.map {
-            it.pack()
+            it.packAsTarget()
         },
         options,
         extras,
@@ -181,7 +183,7 @@ fun Router.NavigationTarget.addRestoreStateOption(restore : Boolean = true): Nav
         destination,
         tag,
         parentTargets?.map {
-            it.pack()
+            it.packAsTarget()
         },
         options.trySetRestoreState(restore),
         extras,
@@ -219,6 +221,22 @@ fun Router.TargetProperties.disableDefaultTransitions(): Router.TargetProperties
            popExitTransition = { ExitTransition.None }
        )
     )
+
+fun Router.NavigationTarget?.packToBundle(key: String): Bundle? =
+    this?.packAsNavigationTarget()?.let{
+        bundleOf(
+            key to it
+        )
+    }
+
+fun Bundle?.getNavigationTarget(key: String): Router.NavigationTarget? =
+    this?.let{
+        getParcelable(key) as Router.NavigationTarget?
+    }
+
+
+fun Router.NavigationTarget.asTargetProperties(): Router.TargetProperties =
+    TargetPropertiesContainer(destination, tag, null)
 
 private fun NavOptions?.trySetPopUpOption(popUpRout: String? = null, inclusive: Boolean = true, saveData: Boolean = false): NavOptions? =
     if(this?.popUpToRoute == null)  {
