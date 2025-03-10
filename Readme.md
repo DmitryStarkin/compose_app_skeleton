@@ -46,11 +46,10 @@ These classes have a lifecycle. Lambda ```content``` receives input data as a ``
 
 &nbsp;&nbsp;&nbsp; To create navigation, use the ```AppLevelActionController.CreateNavHostHere``` function.
 
-By giving her the controller, the list of screens and the start screen (if necessary)
+By giving her the list of screens and the start screen (if necessary)
 for example
 ```kotlin
 viewModel.CreateNavHostHere(
-	navController = navController, 
 	targets = listOf(
 		FirstPage::class.java),
 		SecondPage::class.java,

@@ -22,9 +22,7 @@ class RootActivity : BaseComposeActivity() {
     @Composable
     override fun SetRootUi() {
         Log.d("test","SetRootUi")
-        val controller = rememberNavController()
         appLevelActionController.CreateNavHostHere(
-            navController = controller,
             targets = com.starsoft.skeleton.compose.navigation.listOf(
                 SplashScreen::class.java,
                 RootScreen::class.java),

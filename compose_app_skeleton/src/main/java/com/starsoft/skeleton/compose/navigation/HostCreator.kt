@@ -19,26 +19,22 @@ interface HostCreator {
     
     @Composable
     fun CreateNavHostHere(
-            navController: NavHostController,
             targets: List<Router.TargetProperties>
-    ) = CreateNavHostHere(navController, targets, null)
+    ) = CreateNavHostHere( targets, null)
     
     @Composable
     fun CreateNavHostHere(
-            navController: NavHostController,
             targets: List<Router.TargetProperties>,
             startTarget: Router.Target?
     )
     
     @Composable
     fun CreateNavHostHere(
-            navController: NavHostController,
             targets: ListWrapper<Class<out Router.ComposeDestination>>
-    ) = CreateNavHostHere(navController, targets, null)
+    ) = CreateNavHostHere(targets, null)
     
     @Composable
     fun CreateNavHostHere(
-            navController: NavHostController,
             targets: ListWrapper<Class<out Router.ComposeDestination>>,
             startTarget: Class<out Router.ComposeDestination>?
     )

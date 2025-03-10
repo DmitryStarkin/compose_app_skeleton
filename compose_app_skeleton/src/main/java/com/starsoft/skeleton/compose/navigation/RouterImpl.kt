@@ -19,6 +19,7 @@ import androidx.navigation.Navigator
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
+import androidx.navigation.compose.rememberNavController
 import com.starsoft.skeleton.compose.controller.ActivityLevelAction.NavigationAction.Companion.obtainNavigationAction
 import com.starsoft.skeleton.compose.controller.NavigationEvent
 import com.starsoft.skeleton.compose.controller.AppLevelActionController
@@ -167,7 +168,6 @@ class RouterImpl: Router {
              parent?.let {
                  it.currentDestination?.route?.let{targetKey ->
                      composeTargets.getControllerForTargetKey(targetKey)?.let{controllers ->
-                         
                          controllers.first?.popBackStackInternal(controllers.second) ?: run{
                              close()
                          }
@@ -177,7 +177,6 @@ class RouterImpl: Router {
                  } ?: run{
                      close()
                  }
-             
              } ?: run{
                  close()
              }
@@ -189,7 +188,6 @@ class RouterImpl: Router {
     
     @Composable
     override fun CreateNavHostHere(
-            navController: NavHostController,
             targets: List<Router.TargetProperties>,
             startTarget: Router.Target?
     ){
@@ -200,7 +198,7 @@ class RouterImpl: Router {
         } else {
             targets
         }
-        val entry = ComposeNavigationGraphEntry(navController, localNavController.current, newTargets.map { DestinationsHolder(it) })
+        val entry = ComposeNavigationGraphEntry(rememberNavController(), localNavController.current, newTargets.map { DestinationsHolder(it) })
         if(composeTargets.isContain(entry)) return
         if(composeTargets.isContainRoutFrom(entry)) throw Exception("Rout already exists in tree use tag for unique")
         composeTargets.add(0, entry.also {
@@ -211,11 +209,10 @@ class RouterImpl: Router {
     
     @Composable
     override fun CreateNavHostHere(
-            navController: NavHostController,
             targets: ListWrapper<Class<out Router.ComposeDestination>>,
             startTarget: Class<out Router.ComposeDestination>?
     ){
-        CreateNavHostHere( navController, targets.map { it.asTargetProperties() }, startTarget?.asTarget())
+        CreateNavHostHere(targets.map { it.asTargetProperties() }, startTarget?.asTarget())
     }
     
     @Composable

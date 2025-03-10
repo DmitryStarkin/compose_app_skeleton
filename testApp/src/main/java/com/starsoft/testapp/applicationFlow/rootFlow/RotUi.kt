@@ -111,9 +111,7 @@ fun RootUi(
             .padding(it),
             color = colorResource(R.color.white)
         ) {
-            val navController = rememberNavController()
             viewModel.CreateNavHostHere(
-                navController = navController,
                 targets = listOf(
                 FirstPage::class.java.asTargetProperties().addBackButtonBehavior(Router.BackPressBehavior.Default),
                 SecondPage::class.java.asTargetProperties().addBackButtonBehavior(Router.BackPressBehavior.Default),
@@ -122,8 +120,6 @@ fun RootUi(
             )
                 , startTarget = FirstPage::class.java.asTarget()
             )
-            
-            //localAppLevelActionController.current?.moveToTarget(FirstPage::class.java.asTarget() )
         }
     }
 }

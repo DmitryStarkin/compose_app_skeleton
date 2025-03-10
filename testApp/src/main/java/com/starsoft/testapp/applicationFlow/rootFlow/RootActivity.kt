@@ -41,9 +41,7 @@ class RootActivity : BaseComposeActivity(), Provider<SharedModel>{
     @Composable
     override fun SetRootUi() {
         Log.d("test","SetRootUi")
-        val controller = rememberNavController()
         appLevelActionController.CreateNavHostHere(
-            navController = controller,
             targets = listOf(
                 SplashScreen::class.java,
                 RootScreen::class.java),

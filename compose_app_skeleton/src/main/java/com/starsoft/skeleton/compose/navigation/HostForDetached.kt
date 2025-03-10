@@ -30,11 +30,8 @@ class HostForDetached : Router.ComposeDialog{
                 .fillMaxSize()
         
         ){
-            Log.d("test","HostForDetached data  ${data} ")
             data?.getNavigationTarget(DETACHED_TARGET_KEY)?.apply {
-                val navController = rememberNavController()
                 localAppLevelActionController.current?.CreateNavHostHere(
-                    navController,
                     listOf(this.asTargetProperties().addBackButtonBehavior(Router.BackPressBehavior.Default))
                 )
                 localAppLevelActionController.current?.moveToTarget(this)

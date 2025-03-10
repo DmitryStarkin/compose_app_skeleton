@@ -108,9 +108,7 @@ fun RootUi(
             .padding(it),
             color = colorResource(R.color.white)
         ) {
-            val navController = rememberNavController()
             viewModel.CreateNavHostHere(
-                navController = navController,
                 targets = com.starsoft.skeleton.compose.navigation.listOf(
                     FirstPage::class.java.asTargetProperties().addBackButtonBehavior(Router.BackPressBehavior.Default),
                     SecondPage::class.java.asTargetProperties().addBackButtonBehavior(Router.BackPressBehavior.Default),
