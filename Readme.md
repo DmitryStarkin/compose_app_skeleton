@@ -25,7 +25,7 @@ If the screen has its own ViewModel, then this can usually be implemented like t
 
 ```kotlin
 class SomeViewModel(
-	private val appLevelActionController: AppLevelActionController
+	private val appLevelActionController: AppLevelActionControllerImpl
 	) : ViewModel(),  AppLevelActionController by appLevelActionController
 
 ```
@@ -40,9 +40,13 @@ Provides access to the ```localAppLevelActionController```, which will provide a
 ```ComposeScreen``` 
 or 
 ```ComposeDialog```
+you can override  the onCreate etc.
+
+also if you want to make your class as ```LifeCycleOwner``` , you can extend the ```LifeCycleComposeScreen()``` or ```LifeCycleComposeDialog()``` instead.
+These classes have a ```lifecycle``` field and ability to add observers
 
 describe Ui in ```override val content```
-These classes have a lifecycle. Lambda ```content``` receives input data as a ```Bundle```
+ Lambda ```content``` receives input data as a ```Bundle```
 
 &nbsp;&nbsp;&nbsp; To create navigation, use the ```AppLevelActionController.CreateNavHostHere``` function.
 
@@ -51,7 +55,7 @@ for example
 ```kotlin
 viewModel.CreateNavHostHere(
 	targets = listOf(
-		FirstPage::class.java),
+		FirstPage::class.java,
 		SecondPage::class.java,
 		ThirdPage::class.java,
 		FourPage::class.java),
