@@ -4,7 +4,6 @@ import android.app.Service
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.Log
@@ -13,10 +12,14 @@ import androidx.core.os.bundleOf
 import com.starsoft.skeleton.compose.R
 import com.starsoft.skeleton.compose.util.isInstanceOrExtend
 import kotlinx.parcelize.Parcelize
+import androidx.core.net.toUri
 
 /**
  * Created by Dmitry Starkin on 26.02.2025 15:26.
  */
+
+private val services: HashMap<Class<*>, Intent> = HashMap()
+
 enum class FinishBehavior(val needFinish: Boolean) {
     Finish(true),
     NoFinish(false)
@@ -68,20 +71,21 @@ fun Context.moveToActivity(rout: Class<*>, data: Bundle?) {
 }
 
 fun Context.moveToService(rout: Class<*>, data: Bundle?) {
-    startService(Intent(this, rout).apply {
-        data?.let {
-            it.getIntentCustomizeFunction()?.customize(this)
-            putExtras(it)
+    val intent = Intent(this, rout).also {
+        data?.let {data ->
+            data.getIntentCustomizeFunction()?.customize(it)
+            it.putExtras(data)
         }
     }
-    )
+    services[rout] = intent
+    startService(intent)
 }
 
 fun Context.openWebLink(
         link: String,
         @StringRes chooserTextId: Int = R.string.select_app_to_open_link
 ) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
+    val intent = Intent(Intent.ACTION_VIEW, link.toUri())
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // needed for call Activity using context outside other Activity
     packageManager?.apply {
         intent.resolveActivity(this)?.apply {
@@ -117,7 +121,9 @@ fun Context.openWebLink(
 
 fun Context.tryStopAsService(service: Class<*>) {
     if(service.isInstanceOrExtend(Service::class.java) ){
-        stopService(Intent(this, service))
+        services.get(service)?.apply {
+            stopService(this)
+        }
     }
 }
 

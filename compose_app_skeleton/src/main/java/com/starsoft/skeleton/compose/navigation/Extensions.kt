@@ -14,7 +14,7 @@ import androidx.navigation.NavDeepLink
 import androidx.navigation.NavOptions
 import androidx.navigation.Navigator
 import com.starsoft.skeleton.compose.navigation.NavigationTargetContainer.Companion.packAsNavigationTarget
-import com.starsoft.skeleton.compose.navigation.TargetCreateOptionsContainer.Companion.pack
+import com.starsoft.skeleton.compose.navigation.TargetCreateOptionsContainer.Companion.packAsTargetCreateOptions
 import com.starsoft.skeleton.compose.navigation.Router.BackPressBehavior
 import com.starsoft.skeleton.compose.navigation.TargetContainer.Companion.packAsTarget
 import com.starsoft.skeleton.compose.util.EMPTY_STRING
@@ -44,8 +44,6 @@ data class TargetContainer(
     }
 }
 
-
-
 val Router.TargetProperties.target : Router.Target get() =
         TargetContainer(
             destination,
@@ -53,7 +51,7 @@ val Router.TargetProperties.target : Router.Target get() =
         )
 
 data class TargetCreateOptionsContainer(
-        override val backPressHandleBehavior: BackPressBehavior  =  BackPressBehavior.BySystem,
+        override val backPressHandleBehavior: BackPressBehavior  =  BackPressBehavior.Default,
         override val enterTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? = null,
         override val exitTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)? = null,
         override val popEnterTransition: @JvmSuppressWildcards() (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)? = enterTransition,
@@ -66,7 +64,7 @@ data class TargetCreateOptionsContainer(
 ): Router.TargetCreateOptions{
     companion object{
         
-        fun Router.TargetCreateOptions.pack(): TargetCreateOptionsContainer =
+        fun Router.TargetCreateOptions.packAsTargetCreateOptions(): TargetCreateOptionsContainer =
             if(this is TargetCreateOptionsContainer){
                 this
             } else {
@@ -192,7 +190,7 @@ fun Router.NavigationTarget.addRestoreStateOption(restore : Boolean = true): Nav
     )
 
 fun Class<out Router.ComposeDestination>.asTargetProperties(tag: String = EMPTY_STRING,
-                                                            targetCreateOptions: Router.TargetCreateOptions? = null): Router.TargetProperties =
+                                                            targetCreateOptions: Router.TargetCreateOptions? = TargetCreateOptionsContainer()): Router.TargetProperties =
     TargetPropertiesContainer(this, tag, targetCreateOptions)
 
 fun Class<out Router.ComposeDestination>.asTarget(tag: String = EMPTY_STRING): Router.Target =
@@ -202,14 +200,14 @@ fun Router.TargetProperties.addBackButtonBehavior(behavior: BackPressBehavior): 
     TargetPropertiesContainer(
         destination,
         tag,
-        targetCreateOptions?.pack()?.copy(backPressHandleBehavior = behavior) ?: TargetCreateOptionsContainer(backPressHandleBehavior = behavior)
+        targetCreateOptions?.packAsTargetCreateOptions()?.copy(backPressHandleBehavior = behavior) ?: TargetCreateOptionsContainer(backPressHandleBehavior = behavior)
     )
 
 fun Router.TargetProperties.disableDefaultTransitions(): Router.TargetProperties =
    TargetPropertiesContainer(
        destination,
        tag,
-       targetCreateOptions?.pack()?.copy(
+       targetCreateOptions?.packAsTargetCreateOptions()?.copy(
            enterTransition = { EnterTransition.None },
            exitTransition = { ExitTransition.None },
            popEnterTransition = { EnterTransition.None },

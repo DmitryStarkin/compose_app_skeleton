@@ -1,14 +1,11 @@
 package com.starsoft.skeleton.compose.navigation
 
 import android.os.Bundle
-import android.util.Log
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
-import androidx.navigation.compose.rememberNavController
 import com.starsoft.skeleton.compose.controller.moveToTarget
 
 
@@ -37,7 +34,6 @@ class HostForDetached : Router.ComposeDialog{
                 localAppLevelActionController.current?.moveToTarget(this)
                 
             } ?: run{
-                Log.d("test","HostForDetached data  null move back ")
                 localAppLevelActionController.current?.moveToTarget(Router.MoveBack())
             }
         }

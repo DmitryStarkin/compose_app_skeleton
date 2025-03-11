@@ -1,8 +1,6 @@
 package com.starsoft.skeleton.compose.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavHostController
-
 
 /**
  * Created by Dmitry Starkin on 28.02.2025 14:40.

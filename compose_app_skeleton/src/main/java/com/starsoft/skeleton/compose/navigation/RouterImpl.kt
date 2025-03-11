@@ -183,7 +183,7 @@ class RouterImpl: Router {
          }
          currentEntryId = this.currentBackStackEntry?.id
          this.previousBackStackEntry
-        return popped
+         return popped
     }
     
     @Composable
