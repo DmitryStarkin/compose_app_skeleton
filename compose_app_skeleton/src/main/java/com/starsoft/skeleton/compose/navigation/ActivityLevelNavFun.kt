@@ -121,7 +121,7 @@ fun Context.openWebLink(
 
 fun Context.tryStopAsService(service: Class<*>) {
     if(service.isInstanceOrExtend(Service::class.java) ){
-        services.get(service)?.apply {
+        services[service]?.apply {
             stopService(this)
         }
     }
