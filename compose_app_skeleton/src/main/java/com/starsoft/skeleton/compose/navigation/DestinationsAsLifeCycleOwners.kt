@@ -9,7 +9,7 @@ import androidx.lifecycle.LifecycleRegistry
 /**
  * Created by Dmitry Starkin on 11.03.2025 12:24.
  */
-abstract class LifeCycleComposeScreen: Router.ComposeScreen, LifecycleOwner {
+abstract class ComposeScreenWithLifeCycle: Router.ComposeScreen, LifecycleOwner {
     private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
     override val lifecycle: Lifecycle get() = lifecycleRegistry
     
@@ -42,7 +42,7 @@ abstract class LifeCycleComposeScreen: Router.ComposeScreen, LifecycleOwner {
     }
 }
 
-abstract class LifeCycleComposeDialog:  Router.ComposeDialog, LifecycleOwner{
+abstract class ComposeDialogWithLifeCycle:  Router.ComposeDialog, LifecycleOwner{
     
     private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
     override val lifecycle: Lifecycle get() = lifecycleRegistry

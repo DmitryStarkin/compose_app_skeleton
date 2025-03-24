@@ -42,7 +42,7 @@ or
 ```ComposeDialog```
 you can override  the onCreate etc.
 
-also if you want to make your class as ```LifeCycleOwner``` , you can extend the ```LifeCycleComposeScreen()``` or ```LifeCycleComposeDialog()``` instead.
+also if you want to make your class as ```LifeCycleOwner``` , you can extend the ```ComposeScreenWithLifeCycle()``` or ```ComposeDialogWithLifeCycle()``` instead.
 These classes have a ```lifecycle``` field and ability to add observers
 
 describe Ui in ```override val content```
