@@ -150,7 +150,7 @@ class RouterImpl: Router {
     
     private fun NavHostController.popBackStackInternal(parent: NavHostController?): Boolean
      {
-         this.logStack("before pop controller ${this.hashCode()}")
+         //this.logStack("before pop controller ${this.hashCode()}")
          fun close(){
              currentTargetKey = null
              appLevelActionController?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
@@ -158,7 +158,7 @@ class RouterImpl: Router {
         
         val popped = popBackStack()
          if(popped){
-             this.logStack("after pop controller ${this.hashCode()}")
+             //this.logStack("after pop controller ${this.hashCode()}")
              currentTargetKey = this.currentDestination?.route
              if(currentTargetKey == emptyDest.destinationName){
                  return popBackStackInternal(parent)
@@ -261,7 +261,7 @@ class RouterImpl: Router {
                                                     putNavigateEvent(NavigationEvent.NavigateSusses(it.targetKey ?: EMPTY_STRING))
                                                 }
                                             }
-                                            content(entry, entry.arguments?.getBundle("$ARG${it.destination.name}"))
+                                            content(entry, entry.arguments?.getBundle("$ARG${it.targetKey}"))
                                         }
                                         }
                                     }
@@ -294,7 +294,7 @@ class RouterImpl: Router {
                                                         putNavigateEvent(NavigationEvent.NavigateSusses(it.targetKey ?: EMPTY_STRING))
                                                     }
                                                 }
-                                                content(entry, entry.arguments?.getBundle("$ARG${it.destination.name}"))
+                                                content(entry, entry.arguments?.getBundle("$ARG${it.targetKey}"))
                                             }
                                         }
                                     }
@@ -367,7 +367,7 @@ class RouterImpl: Router {
                     Log.d("test","try popBackStack with ${this.first.hashCode()} ")
                     first?.popBackStackInternal(second)
                     logSuses()
-                    first?.logStack("after navigation")
+                    //first?.logStack("after navigation")
                     afterNavigate(navigationTarget.keyedData)
                 } ?: run{
                     appLevelActionController?.performActivityLevelAction(obtainNavigationAction(Router.Close()))
@@ -385,7 +385,7 @@ class RouterImpl: Router {
                                                                     it.putBundle("$ARG${navigationTarget.targetKey}", unionData)
                                                                 }, navigationTarget.options, navigationTarget.extras)
                     logSuses()
-                    logStack("after navigation")
+                    //logStack("after navigation")
                     afterNavigate()
                 } ?: run{
                     if(!moveAsDetached(navigationTarget.replaceData(Bundle().also { it.putBundle("$ARG${navigationTarget.targetKey}", unionData)}))){
@@ -416,7 +416,7 @@ class RouterImpl: Router {
         val navigationTarget = targetsStack.peek()
         return composeTargets.getControllerForTargetKey(navigationTarget.targetKey)?.first?.let {
             it.navigateInternal(navigationTarget.targetKey, navigationTarget.data, navigationTarget.options, navigationTarget.extras)
-            it.logStack("after navigation")
+            //it.logStack("after navigation")
             targetsStack.pop()
             if(targetsStack.isEmpty()){
                 true
@@ -451,7 +451,7 @@ class RouterImpl: Router {
                         }
                     }?.controllers?.also {
                         //TODO
-                        it.first?.logStack("Before navigate")
+                        //it.first?.logStack("Before navigate")
                     }
                 
                 fun List<ComposeNavigationGraphEntry>.isHasDestination(target: String): Boolean =
@@ -580,19 +580,19 @@ class RouterImpl: Router {
 }
 
 //TODO remove log
-fun NavHostController.logStack(startMsg: String = EMPTY_STRING): NavHostController{
-    
-    Log.d("test"," ")
-    Log.d("test","controller ${this.hashCode()} ")
-    Log.d("test",startMsg)
-    currentBackStack.value.map {
-        Pair(it.destination.route, it.id)
-    }?.forEach {
-        Log.d("test","${it.first} ${it.second}")
-    }
-    Log.d("test"," ")
-    return this
-}
+//fun NavHostController.logStack(startMsg: String = EMPTY_STRING): NavHostController{
+//
+//    Log.d("test"," ")
+//    Log.d("test","controller ${this.hashCode()} ")
+//    Log.d("test",startMsg)
+//    currentBackStack.value.map {
+//        Pair(it.destination.route, it.id)
+//    }?.forEach {
+//        Log.d("test","${it.first} ${it.second}")
+//    }
+//    Log.d("test"," ")
+//    return this
+//}
 
 
 
