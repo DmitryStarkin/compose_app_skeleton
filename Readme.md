@@ -19,14 +19,14 @@ You can create this directly with
 ```AppLevelActionControllerImpl(ErrorHandler(context),Router())```
 or use DI
 
-The Common Model must exist in a single instance within the Activity.
-In order to navigate and send events, each screen must have a link to the CommonModelImpl instance.
+The AppLevelActionController must exist in a single instance within the Activity.
+In order to navigate and send events, each screen must have a link to the AppLevelActionController instance.
 If the screen has its own ViewModel, then this can usually be implemented like this
 
 ```kotlin
 class SomeViewModel(
-	private val appLevelActionController: AppLevelActionControllerImpl
-	) : ViewModel(),  AppLevelActionController by appLevelActionController
+	private val appLevelActionController: AppLevelActionController
+	) : ViewModel(),  AppLevelActionController by appLevelActionControllerImpl
 
 ```
 or in any convenient way
