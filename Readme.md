@@ -77,3 +77,35 @@ Subscribers will receive the data and can extract it using the key, if they know
 ```navigationEventFlow``` – the current navigation position and the data that is returned when you go back (put them when you go to ```NavigationTarget.MoveBack```)
 
 ### See the testApp for more details.
+
+## Installation:
+
+1 in project level build.gradle add:
+```
+
+allprojects {
+repositories {
+........
+        maven { url "https://jitpack.io" }
+        }
+   }
+```
+or in setting.gradle add:
+
+```
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+    ......
+    maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+2 in module level build.gradle add:
+```
+dependencies {
+...........
+         implementation 'com.github.DmitryStarkin:compose_app_skeleton::version'
+   }
+```
