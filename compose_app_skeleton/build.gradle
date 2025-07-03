@@ -19,13 +19,28 @@ plugins {
     id 'kotlin-parcelize'
 }
 
+group ='com.github.DmitryStarkin'
+
 android {
     namespace 'com.starsoft.skeleton.compose'
     compileSdk 35
 
+    def getGitHash = { ->
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'rev-parse', '--short', 'HEAD'
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    }
+
+    def appVersionCode = 1
+    def appVersionName = "0.1.0b" + "_" + getGitHash()
+
     defaultConfig {
         minSdk 24
-
+        versionCode appVersionCode
+        versionName appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
     }
