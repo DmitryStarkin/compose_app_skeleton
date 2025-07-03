@@ -4,6 +4,9 @@ This module is a framework for creating a simple (or maybe complex) Android Comp
 The module provides a navigation system  (as an add-on to the standard navigation) and typical actions in the application.<br/>
 **the module is currently under testing**
 
+## Version:
+ current 0.1.1b
+
 ## Architecture
 
 Single Activity<br/>
