@@ -81,6 +81,9 @@ Subscribers will receive the data and can extract it using the key, if they know
 
 ### See the testApp for more details.
 
+testApp - use  totchPick as DI
+testhiltapp - use Hilt as DI
+
 ## Installation:
 
 1 in project level build.gradle add:
